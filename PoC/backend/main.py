@@ -42,6 +42,90 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/ai/status")
+def ai_status() -> dict[str, Any]:
+    """Check live status of each AI model (C1, C2, C3a, C3b)."""
+    import json
+    import socket
+    import urllib.request
+
+    from ai_services.config import (
+        AI_ENABLED,
+        AI_BASE_URL,
+        CHRONOS_BASE_URL,
+        CHRONOS_ENABLED,
+        CHRONOS_MODEL_NAME,
+        MODEL_C1_MATCHING,
+        MODEL_C2_PRIORITIZER,
+        MODEL_C3_REPORT,
+    )
+
+    def _check_ollama_model(model_name: str) -> dict[str, Any]:
+        if not AI_ENABLED:
+            return {"running": False, "reason": "AI_ENABLED=false"}
+        try:
+            req = urllib.request.Request(
+                "http://127.0.0.1:11434/api/tags",
+                headers={"Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=4) as resp:
+                data = json.loads(resp.read().decode())
+            pulled = [m.get("name", "") for m in data.get("models", [])]
+            base = model_name.split(":")[0]
+            found = any(
+                m == model_name or m.startswith(base + ":") or m == base
+                for m in pulled
+            )
+            if found:
+                return {"running": True, "reason": None}
+            return {"running": False, "reason": f"'{model_name}' not pulled (run: ollama pull {model_name})"}
+        except (TimeoutError, socket.timeout):
+            return {"running": False, "reason": "Ollama not reachable (timeout)"}
+        except Exception as exc:
+            return {"running": False, "reason": f"Ollama error: {exc}"}
+
+    def _check_chronos() -> dict[str, Any]:
+        if not CHRONOS_ENABLED:
+            return {"running": False, "reason": "CHRONOS_ENABLED=false — see backend/chronos_service/README.md"}
+        try:
+            health_url = CHRONOS_BASE_URL.replace("/anomaly", "/health")
+            req = urllib.request.Request(health_url, headers={"Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=4) as resp:
+                data = json.loads(resp.read().decode())
+            model_loaded = data.get("model_loaded", False)
+            if model_loaded:
+                return {"running": True, "reason": None}
+            load_error = data.get("load_error")
+            return {
+                "running": False,
+                "reason": load_error or "Model not yet loaded — GET /health?load_model=true to pre-load",
+            }
+        except (TimeoutError, socket.timeout):
+            return {"running": False, "reason": "Chronos service not reachable (timeout)"}
+        except Exception as exc:
+            return {"running": False, "reason": f"Chronos error: {exc}"}
+
+    c1 = _check_ollama_model(MODEL_C1_MATCHING)
+    c2 = _check_ollama_model(MODEL_C2_PRIORITIZER)
+    c3b = _check_ollama_model(MODEL_C3_REPORT)
+    c3a = _check_chronos()
+
+    models = {
+        "c1_matching": {"label": "C1 Matching", "model": MODEL_C1_MATCHING, **c1},
+        "c2_prioritizer": {"label": "C2 Prioritizer", "model": MODEL_C2_PRIORITIZER, **c2},
+        "c3a_anomaly": {"label": "C3a Anomaly", "model": CHRONOS_MODEL_NAME, **c3a},
+        "c3b_report": {"label": "C3b Report", "model": MODEL_C3_REPORT, **c3b},
+    }
+    running_count = sum(1 for m in models.values() if m["running"])
+    return {
+        "ai_enabled": AI_ENABLED,
+        "chronos_enabled": CHRONOS_ENABLED,
+        "running_count": running_count,
+        "total_count": len(models),
+        "models": models,
+    }
+
+
 @app.get("/test-cases")
 def get_test_cases() -> list[dict[str, Any]]:
     return TEST_CASES.to_dict(orient="records")

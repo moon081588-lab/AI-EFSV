@@ -20,6 +20,14 @@ body {
   margin-bottom: 22px;
 }
 
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .hero h1 {
   margin: 0 0 8px;
   font-size: 34px;
@@ -3830,3 +3838,138 @@ td {
     gap: 4px;
   }
 }
+
+/* ── AI Status Badge ───────────────────────────────────────────────────────── */
+.ai-status-badge {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.ai-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: none;
+  transition: background 0.15s;
+}
+
+.ai-status-pill--green  { border-color: #22c55e; color: #15803d; }
+.ai-status-pill--amber  { border-color: #f59e0b; color: #b45309; }
+.ai-status-pill--red    { border-color: #ef4444; color: #b91c1c; }
+
+.ai-status-pill:hover { background: rgba(0,0,0,0.05); }
+
+.ai-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ai-status-dot--green { background: #22c55e; }
+.ai-status-dot--amber { background: #f59e0b; }
+.ai-status-dot--red   { background: #ef4444; }
+.ai-status-dot--gray  { background: #94a3b8; }
+
+.ai-status-chevron {
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+.ai-status-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  padding: 14px 16px;
+  min-width: 260px;
+  z-index: 200;
+  text-align: left;
+}
+
+.ai-status-panel-title {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.ai-status-model-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-status-model-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ai-status-model-row .ai-status-dot {
+  margin-top: 3px;
+}
+
+.ai-status-model-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ai-status-model-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #18212f;
+}
+
+.ai-status-model-name {
+  font-size: 11px;
+  color: #64748b;
+  font-family: ui-monospace, monospace;
+}
+
+.ai-status-model-reason {
+  font-size: 11px;
+  color: #ef4444;
+  margin-top: 1px;
+}
+
+.ai-status-panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.ai-status-last-checked {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.ai-status-refresh {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3b82f6;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.ai-status-refresh:hover { text-decoration: underline; }

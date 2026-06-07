@@ -13,6 +13,7 @@ import InfoPopup from './components/InfoPopup.jsx';
 import ProtocolExecutionLog from './components/ProtocolExecutionLog.jsx';
 import { ProgressBox, Kpi, DataTable } from './components/shared.jsx';
 import StickyNav from './components/StickyNav.jsx';
+import AIStatusBadge from './components/AIStatusBadge.jsx';
 
 import {
   normalizeSummary,
@@ -826,7 +827,10 @@ export default function App() {
     <StickyNav visibleSections={visibleSections} />
     <main className="page">
       <header className="hero">
-        <h1>AI Assisted Software Verification Tool</h1>
+        <div className="hero-top">
+          <h1>AI Assisted Software Verification Tool</h1>
+          <AIStatusBadge />
+        </div>
         <p>Upload requirements, match reusable test cases, simulate execution, confirm review items, and draft ISO 26262-style evidence.</p>
         <p className="address">Public URL: https://active-mustard-chemicals.ngrok-free.dev</p>
       </header>
