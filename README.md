@@ -12,24 +12,43 @@ Open the link above in any browser on any device — no installation required.
 
 ---
 
-## Project Structure
+## 📄 The Problem
+
+[ecu_verification_pain_demo.html](./ecu_verification_pain_demo.html) — A standalone visual showing the manual ECU verification pain points this tool addresses.
+
+---
+
+## 📁 Project Structure
 
 ```text
-backend/
-  main.py
-  requirements.txt
-  ai_services/
+ecu_verification_pain_demo.html  ← Standalone problem-statement demo
 
-frontend/
-  index.html
-  package.json
-  src/
-    main.jsx
-    styles.css
-  ecu_verification_pain_demo.html
+PoC/
+  backend/
+    main.py
+    requirements.txt
+    ai_services/
+  frontend/
+    index.html
+    package.json
+    src/
+      main.jsx
+      styles.css
+  start.sh        ← Mac launcher (starts everything with one command)
+  start.bat       ← Windows launcher
 
-start.sh        ← Mac launcher (starts everything with one command)
-start.bat       ← Windows launcher
+sample_data/
+  Requirements_correct.xlsx                   ← Standard test input
+  Requirements_correct_5.xlsx                 ← 5-requirement minimal input
+  Requirements_blank.xlsx                     ← Edge case: blank requirements
+  Requirements_missing.xlsx                   ← Edge case: missing fields
+  Requirements_wrong_format_parser_test.xlsx  ← Parser stress test
+  requirements_100.csv                        ← Large CSV input (100 rows)
+  draft_iso_26262_compliance_report.doc       ← Sample output report
+
+docs/
+  AI-EFSV-Demo.pptx        ← Presentation deck (9 slides)
+  AI-EFSV-Demo-Script.md   ← 10–15 min demo talking points
 ```
 
 ---
@@ -101,3 +120,4 @@ Or use the included launcher:
 ## File Upload Format
 
 Use a `.csv` or `.xlsx` Excel file containing software requirements.
+Sample files are in the [`sample_data/`](./sample_data/) folder.
