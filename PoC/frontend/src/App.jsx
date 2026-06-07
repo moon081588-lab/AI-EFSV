@@ -994,11 +994,11 @@ export default function App() {
                   <th>Test Case ID</th>
                   <th>Test Case Name</th>
                   <th>Type</th>
-                  <th>Duration (min)</th>
+                  <th>Dur. (min)</th>
                   <th>Signal</th>
                   <th>Measured Value</th>
-                  <th>Anomaly Type</th>
-                  <th>Confidence</th>
+                  <th>Anomaly</th>
+                  <th>Conf.</th>
                   <th>Engineer Action</th>
                 </tr>
               </thead>

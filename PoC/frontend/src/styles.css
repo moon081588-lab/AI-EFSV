@@ -3988,14 +3988,14 @@ td {
 
 /* Column widths — must match column order in JSX */
 .test-results-table th:nth-child(1)  { width: 74px; }  /* Result */
-.test-results-table th:nth-child(2)  { width: 96px; }  /* Test Case ID */
-.test-results-table th:nth-child(3)  { width: 160px; } /* Test Case Name */
-.test-results-table th:nth-child(4)  { width: 100px; } /* Type */
-.test-results-table th:nth-child(5)  { width: 72px; }  /* Duration */
-.test-results-table th:nth-child(6)  { width: 120px; } /* Signal */
-.test-results-table th:nth-child(7)  { width: 180px; } /* Measured Value */
-.test-results-table th:nth-child(8)  { width: 110px; } /* Anomaly Type */
-.test-results-table th:nth-child(9)  { width: 72px; }  /* Confidence */
+.test-results-table th:nth-child(2)  { width: 90px; }  /* Test Case ID */
+.test-results-table th:nth-child(3)  { width: 155px; } /* Test Case Name */
+.test-results-table th:nth-child(4)  { width: 96px; }  /* Type */
+.test-results-table th:nth-child(5)  { width: 70px; }  /* Duration */
+.test-results-table th:nth-child(6)  { width: 110px; } /* Signal */
+.test-results-table th:nth-child(7)  { width: 165px; } /* Measured Value */
+.test-results-table th:nth-child(8)  { width: 136px; } /* Anomaly — fits "Timing Boundary" */
+.test-results-table th:nth-child(9)  { width: 58px; }  /* Conf. */
 .test-results-table th:nth-child(10) { width: 220px; } /* Engineer Action */
 
 .test-results-table th,
