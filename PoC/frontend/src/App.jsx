@@ -846,8 +846,9 @@ export default function App() {
       </header>
       <TabNav activeSection={activeSection} visibleSections={visibleSections} onTabChange={setActiveSection} />
 
-      {activeSection === 'upload' && <section
+      <section
         id="upload"
+        style={{display: activeSection === 'upload' ? '' : 'none'}}
         className={`card upload-card${isDragging ? ' is-dragging' : ''}`}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
@@ -912,16 +913,16 @@ export default function App() {
 
         {uploadError && <div className="error-box">{uploadError}</div>}
         {uploadNotice && <div className="notice-box">{uploadNotice}</div>}
-      </section>}
+      </section>
 
-      {activeSection === 'parser-summary' && analysis && (
-        <div id="parser-summary"><ParserSummary parserInfo={analysis.parserInfo} /></div>
+      {analysis && (
+        <div id="parser-summary" style={{display: activeSection === 'parser-summary' ? '' : 'none'}}><ParserSummary parserInfo={analysis.parserInfo} /></div>
       )}
-      {activeSection === 'dashboard' && analysis && (
-        <div id="dashboard"><Dashboard summary={activeSummary ?? analysis.summary} /></div>
+      {analysis && (
+        <div id="dashboard" style={{display: activeSection === 'dashboard' ? '' : 'none'}}><Dashboard summary={activeSummary ?? analysis.summary} /></div>
       )}
-      {activeSection === 'c1-review' && analysis && (
-        <div id="c1-review"><Candidate1ReviewWorkspace
+      {analysis && (
+        <div id="c1-review" style={{display: activeSection === 'c1-review' ? '' : 'none'}}><Candidate1ReviewWorkspace
           rows={analysis.candidate1ReviewItems || []}
           decisions={candidate1Decisions}
           reviewNotes={candidate1ReviewNotes}
@@ -932,29 +933,29 @@ export default function App() {
           appendAuditEvent={appendAuditEvent}
         /></div>
       )}
-      {activeSection === 'regression' && analysis && (
-        <div id="regression"><AIRegressionOptimizer
+      {analysis && (
+        <div id="regression" style={{display: activeSection === 'regression' ? '' : 'none'}}><AIRegressionOptimizer
           matches={activeMatches}
           sortMode={optimizerSortMode}
           setSortMode={setOptimizerSortMode}
         /></div>
       )}
-      {activeSection === 'traceability' && analysis && (
-        <div id="traceability"><TraceabilityMatrix rows={activeTraceabilityMatrix} /></div>
+      {analysis && (
+        <div id="traceability" style={{display: activeSection === 'traceability' ? '' : 'none'}}><TraceabilityMatrix rows={activeTraceabilityMatrix} /></div>
       )}
-      {activeSection === 'audit-log' && analysis && (
-        <div id="audit-log"><AuditLog rows={combinedAuditLog} liveCount={liveAuditEvents.length} /></div>
+      {analysis && (
+        <div id="audit-log" style={{display: activeSection === 'audit-log' ? '' : 'none'}}><AuditLog rows={combinedAuditLog} liveCount={liveAuditEvents.length} /></div>
       )}
-      {activeSection === 'export' && analysis && (
-        <div id="export"><ExportCenter
+      {analysis && (
+        <div id="export" style={{display: activeSection === 'export' ? '' : 'none'}}><ExportCenter
           hasTraceability={Boolean(activeTraceabilityMatrix.length)}
           hasAuditLog={Boolean(combinedAuditLog.length)}
           exportTraceability={exportTraceabilityMatrix}
           exportAuditLog={exportAuditLog}
         /></div>
       )}
-      {activeSection === 'simulation' && analysis && (
-        <section id="simulation" className="card">
+      {analysis && (
+        <section id="simulation" className="card" style={{display: activeSection === 'simulation' ? '' : 'none'}}>
           <div className="section-title">
             <Play size={20} />
             <h2 className="title-with-info">
@@ -974,8 +975,8 @@ export default function App() {
         </section>
       )}
 
-      {activeSection === 'test-results' && testResults && (
-        <section id="test-results" className="card simulated-results-card">
+      {testResults && (
+        <section id="test-results" className="card simulated-results-card" style={{display: activeSection === 'test-results' ? '' : 'none'}}>
           <h2 className="title-with-info">
             Simulated Test Results
             <InfoPopup title="Simulated Test Results" content={DASHBOARD_INFO.simulatedResults} />
@@ -1031,8 +1032,8 @@ export default function App() {
         </section>
       )}
 
-      {activeSection === 'anomaly-review' && reviewItems.length > 0 && (
-        <section id="anomaly-review" className="card combined-review-card">
+      {reviewItems.length > 0 && (
+        <section id="anomaly-review" className="card combined-review-card" style={{display: activeSection === 'anomaly-review' ? '' : 'none'}}>
           <h2 className="title-with-info">
             AI Anomaly Review & Engineer Confirmation
             <InfoPopup title="AI Anomaly Review & Engineer Confirmation" content="Review AI-flagged simulated ECU behavior, upload evidence, document engineering rationale, and confirm whether each result can be used as verification evidence." />
@@ -1127,8 +1128,8 @@ export default function App() {
         </section>
       )}
 
-      {activeSection === 'draft-report' && report && (
-        <section id="draft-report" className="card report-card">
+      {report && (
+        <section id="draft-report" className="card report-card" style={{display: activeSection === 'draft-report' ? '' : 'none'}}>
           <div className="section-title">
             <FileText size={20} />
             <h2 className="title-with-info">

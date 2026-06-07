@@ -2,7 +2,7 @@ const NAV_ITEMS = [
   { id: 'upload',         label: 'Upload' },
   { id: 'parser-summary', label: 'Parser Summary' },
   { id: 'dashboard',      label: 'Dashboard' },
-  { id: 'c1-review',      label: 'C1 Review' },
+  { id: 'c1-review',      label: 'Mapping Review' },
   { id: 'regression',     label: 'Regression' },
   { id: 'traceability',   label: 'Traceability' },
   { id: 'audit-log',      label: 'Audit Log' },

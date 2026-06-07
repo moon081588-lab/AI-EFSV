@@ -368,6 +368,7 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
                         onClick={() => {
                           setDecision(item.requirementId, 'REJECTED_BY_ENGINEER');
                           keepRejected(item.requirementId);
+                          setCandidate1Filter('rejected');
                         }}
                       >
                         <XCircle size={16} /> Reject Candidate Test
@@ -412,7 +413,7 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
             </div>
           )}
 
-          {rejectedRows.length > 0 && (
+          {candidate1Filter === 'rejected' && rejectedRows.length > 0 && (
             <div className="rejection-recovery-panel">
               <div className="rejection-recovery-header">
                 <div>
