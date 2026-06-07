@@ -3979,16 +3979,30 @@ td {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  table-layout: fixed; /* critical: enforces column widths, prevents cell blow-out */
 }
+
+/* Column widths — must match column order in JSX */
+.test-results-table th:nth-child(1)  { width: 80px; }   /* Result */
+.test-results-table th:nth-child(2)  { width: 110px; }  /* Test Case ID */
+.test-results-table th:nth-child(3)  { width: 180px; }  /* Test Case Name */
+.test-results-table th:nth-child(4)  { width: 110px; }  /* Type */
+.test-results-table th:nth-child(5)  { width: 80px; }   /* Duration */
+.test-results-table th:nth-child(6)  { width: 130px; }  /* Signal */
+.test-results-table th:nth-child(7)  { width: 200px; }  /* Measured Value */
+.test-results-table th:nth-child(8)  { width: 120px; }  /* Anomaly Type */
+.test-results-table th:nth-child(9)  { width: 80px; }   /* Confidence */
+.test-results-table th:nth-child(10) { width: auto; }   /* Engineer Action — takes remaining space */
 
 .test-results-table th,
 .test-results-table td {
   padding: 8px 12px;
   text-align: left;
   border-bottom: 1px solid #e2e8f0;
-  vertical-align: top;
-  white-space: normal;
-  word-break: break-word;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .test-results-table th {
@@ -3996,31 +4010,25 @@ td {
   font-weight: 600;
   font-size: 12px;
   color: #64748b;
-  white-space: nowrap;
 }
 
-.test-results-table tr:last-child td {
-  border-bottom: none;
-}
-
-.test-results-table tr:hover td {
-  background: #f8fafc;
-}
+.test-results-table tr:last-child td { border-bottom: none; }
+.test-results-table tr:hover td { background: #f8fafc; }
 
 .test-results-table .mono-cell {
   font-family: ui-monospace, monospace;
   font-size: 12px;
-  white-space: nowrap;
 }
 
-.test-results-table .num-cell {
-  text-align: right;
-  white-space: nowrap;
-}
+.test-results-table .num-cell { text-align: right; }
 
+/* Engineer Action: allow wrapping so long text doesn't get cut */
 .test-results-table .truncate-cell {
-  max-width: 240px;
+  white-space: normal;
   overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .status-pill.status-pass   { background: #dcfce7; color: #15803d; }
