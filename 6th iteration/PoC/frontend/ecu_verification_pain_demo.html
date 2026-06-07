@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECU Verification: The Manual Process</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0a0e1a;
+    color: #e0e6f0;
+    overflow-x: hidden;
+  }
+
+  /* ── PROGRESS BAR ── */
+  #progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #06b6d4);
+    transition: width 0.5s ease;
+    z-index: 1000;
+  }
+
+  #step-indicator {
+    position: fixed;
+    top: 16px; right: 20px;
+    font-size: 12px;
+    color: #4b5a7a;
+    z-index: 1000;
+    letter-spacing: 1px;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    display: none;
+    min-height: 100vh;
+    padding: 60px 40px 40px;
+    animation: fadeIn 0.6s ease;
+  }
+  .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    box-shadow: 0 4px 20px rgba(59,130,246,0.35);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(59,130,246,0.5); }
+  .btn-ghost {
+    background: rgba(255,255,255,0.06);
+    color: #94a3b8;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); color: #e0e6f0; }
+
+  /* ── TAGS ── */
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .tag-blue { background: rgba(59,130,246,0.2); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+  .tag-green { background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+  .tag-red { background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+  .tag-orange { background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+  .tag-purple { background: rgba(139,92,246,0.2); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+
+  /* ── ─── SCREEN 0: INTRO ─── ── */
+  #s0 {
+    background: radial-gradient(ellipse at 50% 40%, #0f1d3a 0%, #0a0e1a 70%);
+    text-align: center;
+  }
+  .intro-eyebrow {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #4b5a7a;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .intro-title {
+    font-size: 54px;
+    font-weight: 800;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #e0e6f0 0%, #60a5fa 60%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 20px;
+  }
+  .intro-sub {
+    font-size: 18px;
+    color: #64748b;
+    max-width: 560px;
+    line-height: 1.6;
+    margin-bottom: 48px;
+  }
+  .stats-row {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 56px;
+    justify-content: center;
+  }
+  .stat-pill {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 20px 32px;
+    text-align: center;
+  }
+  .stat-pill .num {
+    font-size: 36px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #60a5fa, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-pill .lbl { font-size: 12px; color: #4b5a7a; margin-top: 4px; letter-spacing: 0.5px; }
+
+  /* ── SCREEN 1: ASSIGNMENT ── */
+  #s1 { background: #0a0e1a; }
+  .terminal {
+    background: #0d1117;
+    border: 1px solid #1e2a3a;
+    border-radius: 12px;
+    padding: 28px 36px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 2;
+    max-width: 680px;
+    width: 100%;
+    margin-bottom: 32px;
+  }
+  .terminal .prompt { color: #4b5a7a; }
+  .terminal .cmd { color: #60a5fa; }
+  .terminal .out { color: #34d399; }
+  .terminal .warn { color: #fbbf24; }
+  .terminal .err { color: #f87171; }
+  .terminal .cursor {
+    display: inline-block;
+    width: 8px; height: 16px;
+    background: #60a5fa;
+    animation: blink 1s step-end infinite;
+    vertical-align: middle;
+    margin-left: 2px;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ── SCREEN 2: REQUIREMENTS ── */
+  #s2 { align-items: flex-start; padding: 60px 60px 40px; }
+  .screen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    margin-bottom: 28px;
+  }
+  .screen-title { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  .screen-subtitle { font-size: 14px; color: #4b5a7a; }
+  .req-list, .tc-list {
+    width: 100%;
+    max-height: 380px;
+    overflow-y: auto;
+    border: 1px solid #1e2a3a;
+    border-radius: 10px;
+    background: #0d1117;
+  }
+  .req-list::-webkit-scrollbar, .tc-list::-webkit-scrollbar { width: 6px; }
+  .req-list::-webkit-scrollbar-track, .tc-list::-webkit-scrollbar-track { background: #0d1117; }
+  .req-list::-webkit-scrollbar-thumb, .tc-list::-webkit-scrollbar-thumb { background: #1e2a3a; border-radius: 3px; }
+
+  .req-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid #111827;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+  }
+  .req-item:last-child { border-bottom: none; }
+  .req-item:hover { background: rgba(59,130,246,0.06); }
+  .req-item.selected { background: rgba(59,130,246,0.12); border-left: 3px solid #3b82f6; }
+  .req-item.mapped { background: rgba(16,185,129,0.06); border-left: 3px solid #10b981; }
+  .req-id { font-family: monospace; font-size: 12px; color: #4b5a7a; min-width: 90px; padding-top: 2px; }
+  .req-text { font-size: 13px; line-height: 1.5; flex: 1; }
+  .req-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+
+  /* ── SCREEN 3: MAPPING ── */
+  #s3 { align-items: flex-start; padding: 60px 40px 40px; }
+  .mapping-layout {
+    display: grid;
+    grid-template-columns: 1fr 80px 1fr;
+    gap: 0;
+    width: 100%;
+    max-height: 440px;
+  }
+  .map-col-header {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #4b5a7a;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-left: 4px;
+  }
+  .map-panel {
+    border: 1px solid #1e2a3a;
+    border-radius: 10px;
+    background: #0d1117;
+    overflow-y: auto;
+    max-height: 400px;
+  }
+  .map-panel::-webkit-scrollbar { width: 5px; }
+  .map-panel::-webkit-scrollbar-thumb { background: #1e2a3a; border-radius: 3px; }
+
+  .map-req-item, .map-tc-item {
+    padding: 10px 14px;
+    border-bottom: 1px solid #111827;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1.4;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .map-req-item:hover, .map-tc-item:hover { background: rgba(59,130,246,0.08); }
+  .map-req-item.active { background: rgba(59,130,246,0.18); border-left: 3px solid #3b82f6; }
+  .map-tc-item.linked { background: rgba(16,185,129,0.1); border-left: 3px solid #10b981; }
+  .map-tc-item.active { background: rgba(245,158,11,0.12); border-left: 3px solid #f59e0b; }
+  .map-id { font-family: monospace; color: #4b5a7a; font-size: 11px; }
+
+  .map-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .svg-connections {
+    width: 80px;
+    height: 400px;
+  }
+
+  #mapping-status {
+    margin: 16px 0;
+    padding: 12px 18px;
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 8px;
+    font-size: 13px;
+    color: #fbbf24;
+    width: 100%;
+  }
+
+  .map-progress {
+    width: 100%;
+    margin: 12px 0;
+    background: #1e2a3a;
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .map-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #06b6d4);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  /* ── SCREEN 4: PROTOCOLS ── */
+  #s4 { background: #0a0e1a; }
+  .protocol-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    width: 100%;
+    max-width: 900px;
+    margin: 28px 0;
+  }
+  .protocol-card {
+    background: #0d1117;
+    border: 1px solid #1e2a3a;
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .protocol-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .protocol-card:hover { border-color: #2d3f5a; transform: translateY(-2px); }
+  .protocol-card.can::before { background: #3b82f6; }
+  .protocol-card.lin::before { background: #8b5cf6; }
+  .protocol-card.flexray::before { background: #06b6d4; }
+  .protocol-card.eth::before { background: #10b981; }
+  .protocol-card.canfd::before { background: #f59e0b; }
+  .protocol-card.most::before { background: #ef4444; }
+  .protocol-card.doip::before { background: #6366f1; }
+  .protocol-card.spi::before { background: #ec4899; }
+  .protocol-card.active {
+    transform: scale(1.03);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+  .proto-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .proto-req-count { font-size: 11px; color: #4b5a7a; margin-bottom: 10px; }
+  .proto-rules { font-size: 11px; color: #64748b; line-height: 1.6; }
+  .proto-rules li { list-style: none; padding-left: 12px; position: relative; }
+  .proto-rules li::before { content: '›'; position: absolute; left: 0; color: #4b5a7a; }
+
+  .protocol-detail {
+    background: #0d1117;
+    border: 1px solid #1e2a3a;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 900px;
+    width: 100%;
+    min-height: 140px;
+    transition: all 0.3s;
+  }
+
+  /* ── SCREEN 5: SCALE ── */
+  #s5 { text-align: center; background: #0a0e1a; }
+  .ecu-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 8px;
+    max-width: 700px;
+    width: 100%;
+    margin: 32px auto;
+  }
+  .ecu-block {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid #1e2a3a;
+    background: #0d1117;
+    color: #4b5a7a;
+    position: relative;
+  }
+  .ecu-block.done {
+    background: rgba(16,185,129,0.15);
+    border-color: rgba(16,185,129,0.4);
+    color: #34d399;
+  }
+  .ecu-block.current {
+    background: rgba(59,130,246,0.2);
+    border-color: rgba(59,130,246,0.6);
+    color: #60a5fa;
+    box-shadow: 0 0 16px rgba(59,130,246,0.3);
+    animation: pulse-ecu 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-ecu {
+    0%, 100% { box-shadow: 0 0 10px rgba(59,130,246,0.3); }
+    50% { box-shadow: 0 0 24px rgba(59,130,246,0.6); }
+  }
+  .ecu-block:not(.done):not(.current):hover {
+    background: rgba(239,68,68,0.08);
+    border-color: rgba(239,68,68,0.2);
+    color: #f87171;
+  }
+
+  .time-display {
+    font-size: 80px;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(135deg, #f87171, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+    margin: 16px 0;
+  }
+  .time-label { font-size: 13px; color: #4b5a7a; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+
+  /* ── SCREEN 6: FINALE ── */
+  #s6 { text-align: center; background: radial-gradient(ellipse at 50% 50%, #1a0a0a 0%, #0a0e1a 70%); }
+  .pain-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    max-width: 820px;
+    width: 100%;
+    margin: 36px auto;
+  }
+  .pain-card {
+    background: #0d1117;
+    border: 1px solid #1e2a3a;
+    border-radius: 12px;
+    padding: 24px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .pain-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .pain-card.red::after { background: linear-gradient(90deg, transparent, #ef4444, transparent); }
+  .pain-card.orange::after { background: linear-gradient(90deg, transparent, #f59e0b, transparent); }
+  .pain-card.purple::after { background: linear-gradient(90deg, transparent, #8b5cf6, transparent); }
+  .pain-card.blue::after { background: linear-gradient(90deg, transparent, #3b82f6, transparent); }
+  .pain-card.cyan::after { background: linear-gradient(90deg, transparent, #06b6d4, transparent); }
+  .pain-card.pink::after { background: linear-gradient(90deg, transparent, #ec4899, transparent); }
+  .pain-num {
+    font-size: 44px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .pain-card.red .pain-num { color: #f87171; }
+  .pain-card.orange .pain-num { color: #fbbf24; }
+  .pain-card.purple .pain-num { color: #a78bfa; }
+  .pain-card.blue .pain-num { color: #60a5fa; }
+  .pain-card.cyan .pain-num { color: #22d3ee; }
+  .pain-card.pink .pain-num { color: #f472b6; }
+  .pain-desc { font-size: 13px; color: #64748b; line-height: 1.5; }
+
+  .cta-box {
+    background: rgba(239,68,68,0.06);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 12px;
+    padding: 24px 40px;
+    max-width: 620px;
+    margin: 0 auto 40px;
+  }
+  .cta-title { font-size: 20px; font-weight: 700; color: #f87171; margin-bottom: 10px; }
+  .cta-text { font-size: 14px; color: #64748b; line-height: 1.7; }
+
+  /* ── SECTION TITLES ── */
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #3b82f6;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  .big-title {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .big-sub { font-size: 16px; color: #4b5a7a; line-height: 1.6; max-width: 580px; }
+
+  /* ── TOOLTIP ── */
+  .tooltip {
+    position: fixed;
+    background: #1e2a3a;
+    border: 1px solid #2d3f5a;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #94a3b8;
+    pointer-events: none;
+    z-index: 999;
+    display: none;
+    max-width: 200px;
+    line-height: 1.4;
+  }
+
+  /* ── COUNTER ANIMATION ── */
+  @keyframes countUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .flash {
+    animation: flashAnim 0.4s ease;
+  }
+  @keyframes flashAnim {
+    0% { background: rgba(59,130,246,0.3); }
+    100% { background: transparent; }
+  }
+
+  /* mapping instruction banner */
+  .map-instruction {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    width: 100%;
+  }
+  .map-instruction.info {
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.25);
+    color: #60a5fa;
+  }
+  .map-instruction.success {
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.25);
+    color: #34d399;
+  }
+  .map-instruction.warn {
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.25);
+    color: #fbbf24;
+  }
+
+  .link-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    background: rgba(16,185,129,0.25);
+    color: #34d399;
+    border-radius: 9px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 6px;
+    padding: 0 5px;
+  }
+
+  .tiredness-bar-wrap {
+    width: 100%;
+    max-width: 500px;
+    margin: 16px auto 0;
+  }
+  .tiredness-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #4b5a7a;
+    margin-bottom: 6px;
+  }
+  .tiredness-bar {
+    height: 8px;
+    background: #1e2a3a;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .tiredness-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease, background 0.5s ease;
+    background: #3b82f6;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar" style="width:0%"></div>
+<div id="step-indicator">STEP 1 / 6</div>
+<div class="tooltip" id="tooltip"></div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 0 — INTRO
+══════════════════════════════════════════════ -->
+<div class="screen active" id="s0">
+  <div class="intro-eyebrow">Automotive Software Verification</div>
+  <h1 class="intro-title">ECU Verification<br>The Manual Way</h1>
+  <p class="intro-sub">현대 자동차 한 대의 소프트웨어를 검증하는 데 실제로 어떤 일이 일어나는지, 직접 경험해 보세요.</p>
+  <div class="stats-row">
+    <div class="stat-pill">
+      <div class="num">100+</div>
+      <div class="lbl">ECU per vehicle</div>
+    </div>
+    <div class="stat-pill">
+      <div class="num">1억+</div>
+      <div class="lbl">Lines of code</div>
+    </div>
+    <div class="stat-pill">
+      <div class="num">18mo</div>
+      <div class="lbl">Max verification time</div>
+    </div>
+    <div class="stat-pill">
+      <div class="num">8</div>
+      <div class="lbl">Communication protocols</div>
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="goTo(1)">
+    시작하기 — ECU 한 개 검증해보기 →
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 1 — ASSIGNMENT
+══════════════════════════════════════════════ -->
+<div class="screen" id="s1">
+  <div style="text-align:center; margin-bottom:36px;">
+    <div class="section-label">Step 1 of 6</div>
+    <h2 class="big-title">오늘의 업무 배정</h2>
+    <p class="big-sub">당신은 Verification Engineer입니다. 오늘 아침 업무가 도착했습니다.</p>
+  </div>
+  <div class="terminal" id="terminal1">
+    <div><span class="prompt">$</span> <span class="cmd">cat today_assignment.txt</span></div>
+    <div style="height:8px"></div>
+    <div class="out" id="t-line1" style="display:none">══════════════════════════════════════════</div>
+    <div class="out" id="t-line2" style="display:none">  VERIFICATION TASK ASSIGNMENT</div>
+    <div class="out" id="t-line3" style="display:none">  Engineer: You</div>
+    <div class="out" id="t-line4" style="display:none">  Date: 2024-11-18</div>
+    <div class="out" id="t-line5" style="display:none">══════════════════════════════════════════</div>
+    <div id="t-line6" style="display:none"><span class="warn">  Target ECU: BCM (Body Control Module)</span></div>
+    <div id="t-line7" style="display:none"><span class="warn">  ECU #: 47 of 100</span></div>
+    <div style="height:4px"></div>
+    <div id="t-line8" style="display:none">  Requirements:    <span style="color:#60a5fa;">312 items</span></div>
+    <div id="t-line9" style="display:none">  Test Cases:      <span style="color:#60a5fa;">847 items</span></div>
+    <div id="t-line10" style="display:none">  Protocols:       <span style="color:#60a5fa;">CAN, LIN, CAN FD, Ethernet, DoIP</span></div>
+    <div style="height:4px"></div>
+    <div id="t-line11" style="display:none"><span class="err">  Deadline: 6 weeks from today</span></div>
+    <div id="t-line12" style="display:none"><span class="err">  Previous ECUs pending: 3 (overdue)</span></div>
+    <div style="height:8px"></div>
+    <div id="t-cursor"><span class="cursor"></span></div>
+  </div>
+  <button class="btn btn-primary" id="btn-s1" onclick="goTo(2)" style="display:none">
+    Requirements 확인하기 →
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 2 — REQUIREMENTS
+══════════════════════════════════════════════ -->
+<div class="screen" id="s2">
+  <div class="screen-header">
+    <div>
+      <div class="section-label">Step 2 of 6</div>
+      <div class="screen-title">BCM Requirements 목록</div>
+      <div class="screen-subtitle">총 312개 중 일부 표시 — 각 항목을 클릭하면 상세 정보를 볼 수 있습니다</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:28px; font-weight:800; color:#60a5fa;">312</div>
+      <div style="font-size:12px; color:#4b5a7a;">TOTAL REQUIREMENTS</div>
+    </div>
+  </div>
+
+  <div class="req-list" id="req-list"></div>
+
+  <div id="req-detail" style="display:none; margin-top:16px; padding:16px 20px; background:#0d1117; border:1px solid #1e2a3a; border-radius:10px; width:100%; font-size:13px; line-height:1.7;"></div>
+
+  <div style="margin-top:20px; display:flex; gap:12px; justify-content:space-between; width:100%; align-items:center;">
+    <div style="font-size:13px; color:#4b5a7a;">
+      💡 <span style="color:#fbbf24;">이 중 어떤 requirement가 어떤 test case와 연결되는지<br>직접 하나씩 확인하고 매핑해야 합니다.</span>
+    </div>
+    <button class="btn btn-primary" onclick="goTo(3)">매핑 작업 시작 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 3 — MAPPING
+══════════════════════════════════════════════ -->
+<div class="screen" id="s3">
+  <div style="width:100%; margin-bottom:16px;">
+    <div class="section-label">Step 3 of 6</div>
+    <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+      <div>
+        <div class="screen-title">Requirements ↔ Test Cases 매핑</div>
+        <div class="screen-subtitle">왼쪽 requirement를 선택 → 오른쪽 test case를 클릭하여 연결하세요 (N:N 관계)</div>
+      </div>
+      <div style="display:flex; gap:20px; text-align:center;">
+        <div>
+          <div style="font-size:22px; font-weight:800; color:#3b82f6;" id="map-req-count">0</div>
+          <div style="font-size:11px; color:#4b5a7a;">매핑된 REQ</div>
+        </div>
+        <div>
+          <div style="font-size:22px; font-weight:800; color:#10b981;" id="map-link-count">0</div>
+          <div style="font-size:11px; color:#4b5a7a;">총 연결</div>
+        </div>
+        <div>
+          <div style="font-size:22px; font-weight:800; color:#f87171;" id="map-remaining">312</div>
+          <div style="font-size:11px; color:#4b5a7a;">남은 REQ</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="map-instruction" class="map-instruction info">
+    👈 왼쪽에서 Requirement를 먼저 선택하세요
+  </div>
+
+  <div class="mapping-layout">
+    <!-- Left: Requirements -->
+    <div>
+      <div class="map-col-header">Requirements (312)</div>
+      <div class="map-panel" id="map-req-panel"></div>
+    </div>
+    <!-- Center: SVG lines -->
+    <div class="map-center">
+      <svg class="svg-connections" id="svg-lines" viewBox="0 0 80 400" preserveAspectRatio="none">
+      </svg>
+    </div>
+    <!-- Right: Test Cases -->
+    <div>
+      <div class="map-col-header">Test Cases (847)</div>
+      <div class="map-panel" id="map-tc-panel"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px; width:100%;">
+    <div class="tiredness-bar-wrap">
+      <div class="tiredness-label">
+        <span>작업 진행률 (312개 기준)</span>
+        <span id="tiredness-pct">0%</span>
+      </div>
+      <div class="tiredness-bar">
+        <div class="tiredness-fill" id="tiredness-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px; display:flex; gap:12px; justify-content:flex-end; width:100%;">
+    <button class="btn btn-ghost" onclick="goTo(4)">매핑 완료 (다음 단계) →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 4 — PROTOCOLS
+══════════════════════════════════════════════ -->
+<div class="screen" id="s4">
+  <div style="text-align:center; margin-bottom:8px;">
+    <div class="section-label">Step 4 of 6</div>
+    <h2 class="big-title">8가지 통신 프로토콜, 각각 다른 규칙</h2>
+    <p class="big-sub" style="margin: 0 auto;">BCM은 5개 프로토콜을 사용합니다. 각 프로토콜마다 verification 방식과 매핑 규칙이 다릅니다.</p>
+  </div>
+
+  <div class="protocol-grid">
+    <div class="protocol-card can" onclick="showProto('can')">
+      <div class="proto-name" style="color:#60a5fa">CAN</div>
+      <div class="proto-req-count">87 REQs</div>
+      <ul class="proto-rules">
+        <li>Message ID 별 매핑</li>
+        <li>DLC 검증 필수</li>
+        <li>Timing 분석 필요</li>
+      </ul>
+    </div>
+    <div class="protocol-card lin" onclick="showProto('lin')">
+      <div class="proto-name" style="color:#a78bfa">LIN</div>
+      <div class="proto-req-count">43 REQs</div>
+      <ul class="proto-rules">
+        <li>Schedule table 매핑</li>
+        <li>Frame ID 기준</li>
+        <li>Master/Slave 구분</li>
+      </ul>
+    </div>
+    <div class="protocol-card flexray" onclick="showProto('flexray')">
+      <div class="proto-name" style="color:#22d3ee">FlexRay</div>
+      <div class="proto-req-count">56 REQs</div>
+      <ul class="proto-rules">
+        <li>Static/Dynamic 슬롯</li>
+        <li>Cycle 단위 검증</li>
+        <li>Cluster config 필요</li>
+      </ul>
+    </div>
+    <div class="protocol-card eth" onclick="showProto('eth')">
+      <div class="proto-name" style="color:#34d399">Ethernet</div>
+      <div class="proto-req-count">72 REQs</div>
+      <ul class="proto-rules">
+        <li>Service ID 매핑</li>
+        <li>VLAN/QoS 고려</li>
+        <li>SOME/IP 규격 준수</li>
+      </ul>
+    </div>
+    <div class="protocol-card canfd" onclick="showProto('canfd')">
+      <div class="proto-name" style="color:#fbbf24">CAN FD</div>
+      <div class="proto-req-count">34 REQs</div>
+      <ul class="proto-rules">
+        <li>FD/Classic 혼용 처리</li>
+        <li>BRS bit 검증</li>
+        <li>최대 64byte DLC</li>
+      </ul>
+    </div>
+    <div class="protocol-card most" onclick="showProto('most')">
+      <div class="proto-name" style="color:#f87171">MOST</div>
+      <div class="proto-req-count">12 REQs</div>
+      <ul class="proto-rules">
+        <li>Function Block ID</li>
+        <li>Bandwidth 관리</li>
+        <li>Ring topology</li>
+      </ul>
+    </div>
+    <div class="protocol-card doip" onclick="showProto('doip')">
+      <div class="proto-name" style="color:#818cf8">DoIP</div>
+      <div class="proto-req-count">5 REQs</div>
+      <ul class="proto-rules">
+        <li>Logical Address 기반</li>
+        <li>ISO 13400 준수</li>
+        <li>진단 메시지 검증</li>
+      </ul>
+    </div>
+    <div class="protocol-card spi" onclick="showProto('spi')">
+      <div class="proto-name" style="color:#f472b6">SPI/I²C</div>
+      <div class="proto-req-count">3 REQs</div>
+      <ul class="proto-rules">
+        <li>내부 버스 전용</li>
+        <li>Clock rate 검증</li>
+        <li>별도 tool 필요</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="protocol-detail" id="proto-detail">
+    <div style="color:#4b5a7a; font-size:14px; text-align:center; padding:20px;">
+      ← 프로토콜 카드를 클릭하면 상세 규칙을 확인할 수 있습니다
+    </div>
+  </div>
+
+  <div style="margin-top:20px; display:flex; gap:12px; justify-content:center;">
+    <button class="btn btn-primary" onclick="goTo(5)">다음 — 100개 ECU의 현실 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 5 — SCALE
+══════════════════════════════════════════════ -->
+<div class="screen" id="s5">
+  <div class="section-label">Step 5 of 6</div>
+  <h2 class="big-title">그런데… BCM은 <span style="color:#f87171">100개 ECU 중 하나</span>입니다</h2>
+  <p style="color:#4b5a7a; font-size:15px; margin-bottom:8px;">각 블록이 하나의 ECU입니다. 47번 BCM을 방금 마쳤습니다.</p>
+
+  <div class="ecu-grid" id="ecu-grid"></div>
+
+  <div style="margin-top:8px;">
+    <div class="time-label">남은 작업 예상 시간</div>
+    <div class="time-display" id="time-display">—</div>
+    <div style="font-size:14px; color:#64748b;" id="time-sub"></div>
+  </div>
+
+  <div class="tiredness-bar-wrap" style="margin-top:20px;">
+    <div class="tiredness-label">
+      <span>전체 진행률</span>
+      <span id="scale-pct">47%</span>
+    </div>
+    <div class="tiredness-bar">
+      <div class="tiredness-fill" id="scale-fill" style="width:47%"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:28px;">
+    <button class="btn btn-primary" onclick="goTo(6)">현실 직시하기 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 6 — FINALE
+══════════════════════════════════════════════ -->
+<div class="screen" id="s6">
+  <div class="section-label" style="color:#f87171">현실의 숫자들</div>
+  <h2 class="big-title" style="color:#f87171;">수동 Verification의 실제 비용</h2>
+
+  <div class="pain-metrics">
+    <div class="pain-card red">
+      <div class="pain-num" id="fin1">0</div>
+      <div class="pain-desc">차량 1대당<br>최대 소요 시간</div>
+    </div>
+    <div class="pain-card orange">
+      <div class="pain-num" id="fin2">0</div>
+      <div class="pain-desc">ECU당 평균<br>매핑 연결 수</div>
+    </div>
+    <div class="pain-card purple">
+      <div class="pain-num" id="fin3">0</div>
+      <div class="pain-desc">차량 전체<br>총 매핑 연결 수</div>
+    </div>
+    <div class="pain-card blue">
+      <div class="pain-num" id="fin4">0</div>
+      <div class="pain-desc">검증해야 할<br>소프트웨어 라인</div>
+    </div>
+    <div class="pain-card cyan">
+      <div class="pain-num" id="fin5">0</div>
+      <div class="pain-desc">통신 프로토콜<br>각각 다른 규칙</div>
+    </div>
+    <div class="pain-card pink">
+      <div class="pain-num" id="fin6">0</div>
+      <div class="pain-desc">Human error로 인한<br>평균 재작업 비율</div>
+    </div>
+  </div>
+
+  <div class="cta-box">
+    <div class="cta-title">⚠️ 이것이 현재의 현실입니다</div>
+    <div class="cta-text">
+      수백 명의 엔지니어가 수개월 동안 수동으로 클릭하고, 확인하고, 재검토합니다.<br>
+      한 번의 매핑 실수가 차량 리콜로 이어질 수 있습니다.<br><br>
+      <strong style="color:#e0e6f0;">AI-Human Teaming이 이 프로세스를 어떻게 바꾸는지 보여드리겠습니다.</strong>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:16px;">
+    <button class="btn btn-ghost" onclick="goTo(0)">← 처음부터 다시</button>
+    <button class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 20px rgba(16,185,129,0.35);" onclick="window.open('https://active-mustard-chemicals.ngrok-free.dev','_blank')">
+      AI-Human Teaming 솔루션 보기 →
+    </button>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────
+const REQS = [
+  { id:"BCM-REQ-001", proto:"CAN", text:"윈도우 제어 모터 구동 시 CAN 버스 신호 응답 시간은 50ms 이내여야 한다.", tags:["Safety","Timing"] },
+  { id:"BCM-REQ-002", proto:"LIN", text:"도어 잠금 액추에이터는 LIN 프레임 수신 후 100ms 이내에 동작 완료해야 한다.", tags:["Actuator","Timing"] },
+  { id:"BCM-REQ-003", proto:"CAN", text:"BCM은 엔진 ECU로부터 RPM 신호를 수신하여 자동 잠금 기능을 활성화해야 한다.", tags:["Functional"] },
+  { id:"BCM-REQ-004", proto:"Ethernet", text:"OTA 업데이트 수신 시 기존 기능의 중단 없이 백그라운드 다운로드가 수행되어야 한다.", tags:["OTA","Safety"] },
+  { id:"BCM-REQ-005", proto:"CAN FD", text:"긴급 제동 신호(AEB)를 수신할 경우 BCM은 5ms 이내에 경보 시스템을 활성화해야 한다.", tags:["Safety-Critical","Timing"] },
+  { id:"BCM-REQ-006", proto:"LIN", text:"실내 조명의 LIN 제어 신호는 주기적으로 100ms 간격으로 전송되어야 한다.", tags:["Periodic","Lighting"] },
+  { id:"BCM-REQ-007", proto:"CAN", text:"BCM 초기화 시퀀스는 500ms 이내에 완료되어야 하며 에러 없이 CAN 버스에 참여해야 한다.", tags:["Init","Timing"] },
+  { id:"BCM-REQ-008", proto:"DoIP", text:"원격 진단 세션 동안 BCM은 UDS 서비스 0x22에 응답해야 한다.", tags:["Diagnostics"] },
+  { id:"BCM-REQ-009", proto:"CAN FD", text:"BCM은 CAN FD 프레임의 BRS(Bit Rate Switch) 비트를 올바르게 처리해야 한다.", tags:["Protocol","CAN FD"] },
+  { id:"BCM-REQ-010", proto:"CAN", text:"이모빌라이저 해제 신호 수신 후 BCM은 시동 허가 신호를 100ms 이내에 전송해야 한다.", tags:["Security","Timing"] },
+  { id:"BCM-REQ-011", proto:"LIN", text:"사이드 미러 접이/펼침 동작은 LIN 마스터 요청 후 2초 이내에 완료되어야 한다.", tags:["Actuator"] },
+  { id:"BCM-REQ-012", proto:"Ethernet", text:"SOME/IP 서비스 디스커버리 메시지에 BCM은 200ms 이내에 응답해야 한다.", tags:["SOME/IP","Timing"] },
+  { id:"BCM-REQ-013", proto:"CAN", text:"충돌 감지 신호 수신 시 BCM은 전체 도어 잠금 해제를 즉시 수행해야 한다.", tags:["Safety-Critical","Emergency"] },
+  { id:"BCM-REQ-014", proto:"CAN", text:"BCM은 배터리 전압이 9V 이하로 떨어질 경우 비핵심 기능을 자동으로 비활성화해야 한다.", tags:["Power Management"] },
+  { id:"BCM-REQ-015", proto:"LIN", text:"트렁크 열림 버튼의 LIN 신호는 3회 연속 수신 시에만 동작해야 한다 (디바운싱).", tags:["Debounce","Input"] },
+];
+
+const TCS = [
+  { id:"TC-CAN-001", text:"CAN 버스 신호 응답 시간 측정 (50ms 기준)", proto:"CAN" },
+  { id:"TC-CAN-002", text:"CAN 버스 로드율 80% 이상 조건에서 응답 시간 재측정", proto:"CAN" },
+  { id:"TC-CAN-003", text:"도어 잠금 사이클 100회 반복 테스트", proto:"LIN" },
+  { id:"TC-CAN-004", text:"RPM 신호 임계값(20km/h) 도달 시 자동잠금 동작 확인", proto:"CAN" },
+  { id:"TC-CAN-005", text:"RPM 신호 손실 시 자동잠금 Fallback 동작 확인", proto:"CAN" },
+  { id:"TC-ETH-001", text:"OTA 다운로드 중 윈도우 제어 동시 동작 확인", proto:"Ethernet" },
+  { id:"TC-ETH-002", text:"OTA 패킷 유실 시 재전송 및 복구 동작 확인", proto:"Ethernet" },
+  { id:"TC-FD-001", text:"AEB 신호 수신 후 경보 활성화 시간 측정 (5ms)", proto:"CAN FD" },
+  { id:"TC-FD-002", text:"AEB 신호 + 충돌 감지 동시 입력 시 우선순위 처리", proto:"CAN FD" },
+  { id:"TC-LIN-001", text:"조명 LIN 신호 주기 정확도 측정 (±10%)", proto:"LIN" },
+  { id:"TC-LIN-002", text:"LIN 버스 노이즈 환경에서 조명 제어 안정성", proto:"LIN" },
+  { id:"TC-INIT-001", text:"콜드 스타트 시 BCM 초기화 시간 측정", proto:"CAN" },
+  { id:"TC-INIT-002", text:"배터리 재연결 후 BCM 재초기화 동작 확인", proto:"CAN" },
+  { id:"TC-DIAG-001", text:"UDS 0x22 서비스 응답 확인 (로컬)", proto:"DoIP" },
+  { id:"TC-DIAG-002", text:"UDS 0x22 서비스 응답 확인 (원격, DoIP)", proto:"DoIP" },
+  { id:"TC-FD-003", text:"BRS 비트 세트된 CAN FD 프레임 수신 처리 확인", proto:"CAN FD" },
+  { id:"TC-FD-004", text:"Classic CAN / CAN FD 혼용 트래픽 처리 확인", proto:"CAN FD" },
+  { id:"TC-SEC-001", text:"이모빌라이저 정상 해제 후 시동 허가 시간 측정", proto:"CAN" },
+  { id:"TC-SEC-002", text:"이모빌라이저 비정상 신호 입력 시 거부 동작 확인", proto:"CAN" },
+  { id:"TC-LIN-003", text:"사이드 미러 접이 완료 시간 측정 (2초 기준)", proto:"LIN" },
+  { id:"TC-SOME-001", text:"SOME/IP SD 응답 시간 측정 (200ms 기준)", proto:"Ethernet" },
+  { id:"TC-SOME-002", text:"SOME/IP 서비스 구독 및 이벤트 수신 확인", proto:"Ethernet" },
+  { id:"TC-SAFE-001", text:"충돌 감지 신호 시뮬레이션 후 도어 잠금 해제 확인", proto:"CAN" },
+  { id:"TC-SAFE-002", text:"충돌 감지 + 연료차단 신호 동시 발생 시 처리 순서 확인", proto:"CAN" },
+  { id:"TC-PWR-001", text:"배터리 전압 9V 강하 시 비핵심 기능 자동 비활성화 확인", proto:"CAN" },
+  { id:"TC-PWR-002", text:"전압 회복 후 비핵심 기능 자동 재활성화 확인", proto:"CAN" },
+  { id:"TC-DEB-001", text:"트렁크 버튼 3회 연속 입력 시 정상 동작 확인", proto:"LIN" },
+  { id:"TC-DEB-002", text:"트렁크 버튼 2회 이하 입력 시 동작 없음 확인 (디바운싱)", proto:"LIN" },
+];
+
+// Predefined expected mappings
+const EXPECTED_MAPS = {
+  "BCM-REQ-001": ["TC-CAN-001","TC-CAN-002"],
+  "BCM-REQ-002": ["TC-CAN-003"],
+  "BCM-REQ-003": ["TC-CAN-004","TC-CAN-005"],
+  "BCM-REQ-004": ["TC-ETH-001","TC-ETH-002"],
+  "BCM-REQ-005": ["TC-FD-001","TC-FD-002"],
+  "BCM-REQ-006": ["TC-LIN-001","TC-LIN-002"],
+  "BCM-REQ-007": ["TC-INIT-001","TC-INIT-002"],
+  "BCM-REQ-008": ["TC-DIAG-001","TC-DIAG-002"],
+  "BCM-REQ-009": ["TC-FD-003","TC-FD-004"],
+  "BCM-REQ-010": ["TC-SEC-001","TC-SEC-002"],
+  "BCM-REQ-011": ["TC-LIN-003"],
+  "BCM-REQ-012": ["TC-SOME-001","TC-SOME-002"],
+  "BCM-REQ-013": ["TC-SAFE-001","TC-SAFE-002"],
+  "BCM-REQ-014": ["TC-PWR-001","TC-PWR-002"],
+  "BCM-REQ-015": ["TC-DEB-001","TC-DEB-002"],
+};
+
+// State
+let currentScreen = 0;
+let selectedReq = null;
+let mappings = {}; // reqId -> Set of tcIds
+let mappedReqs = new Set();
+let tirednessLevel = 0;
+
+const TOTAL_SCREENS = 6;
+
+// ── NAVIGATION ──────────────────────────────────
+function goTo(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('s' + n).classList.add('active');
+  currentScreen = n;
+  const pct = (n / TOTAL_SCREENS * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('step-indicator').textContent = `STEP ${n+1} / ${TOTAL_SCREENS+1}`;
+  if (n === 1) startTerminal();
+  if (n === 2) buildReqList();
+  if (n === 3) buildMappingUI();
+  if (n === 5) buildEcuGrid();
+  if (n === 6) animateFinale();
+  window.scrollTo(0,0);
+}
+
+// ── SCREEN 1: TERMINAL ANIMATION ──────────────
+function startTerminal() {
+  const lines = ['t-line1','t-line2','t-line3','t-line4','t-line5','t-line6','t-line7','t-line8','t-line9','t-line10','t-line11','t-line12'];
+  lines.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'block';
+    }, i * 140);
+  });
+  setTimeout(() => {
+    document.getElementById('btn-s1').style.display = 'inline-flex';
+  }, lines.length * 140 + 300);
+}
+
+// ── SCREEN 2: REQUIREMENTS ──────────────────
+function buildReqList() {
+  const container = document.getElementById('req-list');
+  container.innerHTML = '';
+  REQS.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'req-item';
+    div.dataset.id = r.id;
+
+    const protoTag = `<span class="tag tag-blue">${r.proto}</span>`;
+    const tagsHtml = r.tags.map(t => {
+      const cls = t.includes('Safety') ? 'tag-red' : t.includes('Timing') ? 'tag-orange' : 'tag-green';
+      return `<span class="tag ${cls}">${t}</span>`;
+    }).join('');
+
+    div.innerHTML = `
+      <div class="req-id">${r.id}</div>
+      <div class="req-text">
+        ${r.text}
+        <div class="req-badges">${protoTag}${tagsHtml}</div>
+      </div>
+    `;
+
+    div.onclick = () => {
+      document.querySelectorAll('.req-item').forEach(x => x.classList.remove('selected'));
+      div.classList.add('selected');
+      showReqDetail(r);
+    };
+    container.appendChild(div);
+  });
+
+  // Add ghost rows to show scale
+  for(let i = REQS.length + 1; i <= 30; i++) {
+    const div = document.createElement('div');
+    div.className = 'req-item';
+    div.style.opacity = '0.3';
+    div.innerHTML = `<div class="req-id">BCM-REQ-${String(i).padStart(3,'0')}</div><div class="req-text" style="color:#2d3f5a;">─────────────────────────────────────</div>`;
+    container.appendChild(div);
+  }
+  const moreDiv = document.createElement('div');
+  moreDiv.style.cssText = 'padding:16px; text-align:center; color:#2d3f5a; font-size:13px;';
+  moreDiv.textContent = '... 283개 항목 더 있음 (스크롤하여 확인)';
+  container.appendChild(moreDiv);
+}
+
+function showReqDetail(r) {
+  const detail = document.getElementById('req-detail');
+  detail.style.display = 'block';
+  const tcLinks = EXPECTED_MAPS[r.id] || [];
+  detail.innerHTML = `
+    <div style="display:flex; gap:20px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:200px;">
+        <div style="font-size:11px; color:#4b5a7a; margin-bottom:6px; letter-spacing:1px;">REQUIREMENT ID</div>
+        <div style="font-family:monospace; color:#60a5fa; font-size:16px; font-weight:700;">${r.id}</div>
+      </div>
+      <div style="flex:1; min-width:200px;">
+        <div style="font-size:11px; color:#4b5a7a; margin-bottom:6px; letter-spacing:1px;">PROTOCOL</div>
+        <div><span class="tag tag-blue">${r.proto}</span></div>
+      </div>
+      <div style="flex:2; min-width:300px;">
+        <div style="font-size:11px; color:#4b5a7a; margin-bottom:6px; letter-spacing:1px;">EXPECTED TEST CASES (${tcLinks.length}개)</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          ${tcLinks.map(t => `<span class="tag tag-green">${t}</span>`).join('')}
+          ${tcLinks.length === 0 ? '<span style="color:#4b5a7a; font-size:12px;">아직 연결 없음 (직접 파악해야 함)</span>' : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ── SCREEN 3: MAPPING ──────────────────────
+function buildMappingUI() {
+  const reqPanel = document.getElementById('map-req-panel');
+  const tcPanel = document.getElementById('map-tc-panel');
+  reqPanel.innerHTML = '';
+  tcPanel.innerHTML = '';
+  mappings = {};
+  mappedReqs = new Set();
+  selectedReq = null;
+  tirednessLevel = 0;
+  updateMappingStats();
+
+  REQS.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'map-req-item';
+    div.dataset.id = r.id;
+    const tagColor = r.proto === 'CAN' ? '#60a5fa' : r.proto === 'LIN' ? '#a78bfa' : r.proto === 'CAN FD' ? '#fbbf24' : r.proto === 'Ethernet' ? '#34d399' : '#22d3ee';
+    div.innerHTML = `<div class="map-id">${r.id}</div><div style="font-size:11px; margin-top:3px; color:#94a3b8; line-height:1.3;">${r.text.substring(0,55)}…</div><div style="margin-top:4px;"><span style="font-size:10px; color:${tagColor}; font-weight:700;">${r.proto}</span><span class="link-count-badge" id="badge-${r.id}">0</span></div>`;
+    div.onclick = () => selectReq(r.id);
+    reqPanel.appendChild(div);
+  });
+
+  // Ghost items
+  for(let i = REQS.length+1; i<=40; i++) {
+    const div = document.createElement('div');
+    div.className = 'map-req-item';
+    div.style.opacity = '0.25';
+    div.innerHTML = `<div class="map-id">BCM-REQ-${String(i).padStart(3,'0')}</div><div style="font-size:11px; color:#1e2a3a; margin-top:3px;">──────────────────────</div>`;
+    reqPanel.appendChild(div);
+  }
+
+  TCS.forEach(tc => {
+    const div = document.createElement('div');
+    div.className = 'map-tc-item';
+    div.dataset.id = tc.id;
+    div.innerHTML = `<div class="map-id">${tc.id}</div><div style="font-size:11px; margin-top:3px; color:#94a3b8; line-height:1.3;">${tc.text}</div>`;
+    div.onclick = () => linkTC(tc.id);
+    tcPanel.appendChild(div);
+  });
+
+  // Ghost TC items
+  for(let i = TCS.length+1; i<=60; i++) {
+    const div = document.createElement('div');
+    div.className = 'map-tc-item';
+    div.style.opacity = '0.2';
+    div.innerHTML = `<div class="map-id">TC-???-${String(i).padStart(3,'0')}</div><div style="font-size:11px; color:#1e2a3a; margin-top:3px;">──────────────────────</div>`;
+    tcPanel.appendChild(div);
+  }
+}
+
+function selectReq(reqId) {
+  selectedReq = reqId;
+  document.querySelectorAll('.map-req-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === reqId);
+  });
+
+  // Highlight linked TCs
+  const linked = mappings[reqId] || new Set();
+  document.querySelectorAll('.map-tc-item').forEach(el => {
+    el.classList.toggle('linked', linked.has(el.dataset.id));
+    el.classList.remove('active');
+  });
+
+  const el = document.querySelector(`.map-req-item[data-id="${reqId}"]`);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  const reqData = REQS.find(r => r.id === reqId);
+  const inst = document.getElementById('map-instruction');
+  inst.className = 'map-instruction info';
+  inst.innerHTML = `📋 <strong>${reqId}</strong> 선택됨 — 오른쪽에서 연결할 Test Case를 클릭하세요 (여러 개 가능)`;
+}
+
+function linkTC(tcId) {
+  if(!selectedReq) {
+    const inst = document.getElementById('map-instruction');
+    inst.className = 'map-instruction warn';
+    inst.innerHTML = '⚠️ 먼저 왼쪽에서 Requirement를 선택하세요!';
+    return;
+  }
+
+  if(!mappings[selectedReq]) mappings[selectedReq] = new Set();
+  const already = mappings[selectedReq].has(tcId);
+  if(already) {
+    mappings[selectedReq].delete(tcId);
+  } else {
+    mappings[selectedReq].add(tcId);
+    // Tire the user
+    tirednessLevel = Math.min(100, tirednessLevel + 3);
+    updateTiredness();
+  }
+
+  if(!already) mappedReqs.add(selectedReq);
+
+  // Update TC highlight
+  const tcEl = document.querySelector(`.map-tc-item[data-id="${tcId}"]`);
+  if(tcEl) {
+    tcEl.classList.toggle('linked', !already);
+    tcEl.classList.add('active');
+    setTimeout(() => tcEl.classList.remove('active'), 300);
+  }
+
+  // Update badge
+  const badge = document.getElementById(`badge-${selectedReq}`);
+  if(badge) badge.textContent = mappings[selectedReq].size;
+
+  updateMappingStats();
+
+  const inst = document.getElementById('map-instruction');
+  if(!already) {
+    const expected = EXPECTED_MAPS[selectedReq] || [];
+    const myLinks = [...mappings[selectedReq]];
+    const correct = myLinks.filter(t => expected.includes(t)).length;
+    const total = expected.length;
+    inst.className = 'map-instruction success';
+    inst.innerHTML = `✅ 연결됨: <strong>${selectedReq}</strong> → <strong>${tcId}</strong> &nbsp;|&nbsp; 이 REQ에 ${myLinks.length}개 연결 (권장 ${total}개)`;
+  } else {
+    inst.className = 'map-instruction warn';
+    inst.innerHTML = `🔗 연결 해제: ${selectedReq} ↔ ${tcId}`;
+  }
+}
+
+function updateMappingStats() {
+  let totalLinks = 0;
+  Object.values(mappings).forEach(s => totalLinks += s.size);
+  document.getElementById('map-req-count').textContent = mappedReqs.size;
+  document.getElementById('map-link-count').textContent = totalLinks;
+  document.getElementById('map-remaining').textContent = 312 - mappedReqs.size;
+  const pct = Math.round(mappedReqs.size / 15 * 100);
+  document.getElementById('tiredness-pct').textContent = pct + '%';
+  document.getElementById('tiredness-fill').style.width = pct + '%';
+}
+
+function updateTiredness() {
+  const fill = document.getElementById('tiredness-fill');
+  const pct = Math.round(mappedReqs.size / 15 * 100);
+  const col = pct < 30 ? '#3b82f6' : pct < 60 ? '#f59e0b' : '#ef4444';
+  fill.style.background = col;
+}
+
+// ── SCREEN 4: PROTOCOLS ──────────────────────
+const protoDetails = {
+  can: {
+    name: "CAN (Controller Area Network)",
+    color: "#60a5fa",
+    rules: [
+      "Message ID (11-bit 또는 29-bit)를 기준으로 requirement와 test case를 매핑해야 함",
+      "각 signal의 DLC(Data Length Code) 검증 필수 — DBC 파일과 대조 필요",
+      "버스 로드율(Bus Load)이 80% 이상 조건에서 Timing 재검증 필요",
+      "Error Frame 발생 시나리오에 대한 별도 테스트 케이스 생성 필요",
+      "CRC 오류, ACK 슬롯 검증, 비트 타이밍 설정 각각 별도 requirement로 분리"
+    ],
+    note: "BCM에서 CAN 관련 REQ가 가장 많음 (87개). 각 REQ마다 최소 2-3개 TC 필요."
+  },
+  lin: {
+    name: "LIN (Local Interconnect Network)",
+    color: "#a78bfa",
+    rules: [
+      "Schedule Table 기반으로 매핑 — Unconditional/Event-triggered/Sporadic Frame 구분 필요",
+      "LIN Frame ID (0x00~0x3F)별 requirement 분리, 각각 독립적인 TC 필요",
+      "Master Task / Slave Task 구분하여 각각 별도 검증 시나리오 작성",
+      "LIN 2.x 규격에 따른 Enhanced Checksum 적용 여부 확인",
+      "Sleep/Wake-up 시퀀스에 대한 별도 requirement 존재 — 연결 관계 복잡"
+    ],
+    note: "도어, 미러, 조명 제어 등 여러 actuator가 LIN 사용. 물리적 하네스 위치까지 TC에 포함해야 함."
+  },
+  flexray: {
+    name: "FlexRay",
+    color: "#22d3ee",
+    rules: [
+      "Static Segment / Dynamic Segment 슬롯 번호 기준으로 requirement 분리",
+      "Cycle Multiplexing 사용 시 주기 단위 검증 절차 별도 수립",
+      "두 채널(Channel A / B) 각각에 대한 독립 검증 필요",
+      "Cluster 설정 파일(FIBEX)과 requirement를 일일이 대조해야 함",
+      "BCM은 FlexRay를 게이트웨이 기능으로 사용 — 변환 로직 별도 검증"
+    ],
+    note: "BCM의 FlexRay 관련 REQ 56개 중 약 30%가 다른 프로토콜과 cross-protocol 관계 보유."
+  },
+  eth: {
+    name: "Automotive Ethernet (SOME/IP)",
+    color: "#34d399",
+    rules: [
+      "Service ID / Method ID / Event ID 조합으로 requirement를 매핑해야 함",
+      "VLAN 설정 및 QoS (Traffic Class) 별 별도 검증 시나리오 필요",
+      "SOME/IP-SD (Service Discovery) 관련 requirement는 타이밍 분석 필수",
+      "보안 관련 requirement (SecOC, MACsec)는 별도 검증 도구 필요",
+      "OTA와 일반 서비스가 동일 이더넷 버스 공유 — 우선순위 충돌 시나리오 포함"
+    ],
+    note: "이더넷은 프로토콜 스택이 깊어 requirement 1개당 평균 4.2개 TC가 필요함 (가장 높음)."
+  },
+  canfd: {
+    name: "CAN FD (Flexible Data-Rate)",
+    color: "#fbbf24",
+    rules: [
+      "Classic CAN requirement와 CAN FD requirement를 명확히 구분하여 매핑",
+      "BRS(Bit Rate Switch) 및 ESI(Error Status Indicator) 비트 각각 검증 필요",
+      "최대 64바이트 DLC — 기존 8바이트 기준 TC 재작성 필요",
+      "Mixed-mode 트래픽(Classic + FD 혼재) 시나리오 별도 TC 필요",
+      "ISO 11898-1:2015 준수 여부를 requirement별로 추적"
+    ],
+    note: "CAN에서 CAN FD로 마이그레이션 중인 ECU의 경우 두 프로토콜 TC가 모두 필요. 관리 복잡도 2배."
+  },
+  most: {
+    name: "MOST (Media Oriented Systems Transport)",
+    color: "#f87171",
+    rules: [
+      "Function Block ID 기준으로 requirement 분류 — MOST Specification 문서 필수",
+      "동기 채널(Synchronous), 비동기 채널(Asynchronous), 제어 채널 각각 별도 검증",
+      "Ring topology 특성상 노드 장애 시나리오 포함 필요",
+      "Bandwidth 할당 관련 requirement는 전체 MOST 네트워크 컨텍스트 필요",
+      "Optical/Electrical 물리 계층 구분하여 환경 테스트 포함"
+    ],
+    note: "BCM의 MOST는 인포테인먼트 시스템 연동 전용. 12개 REQ이지만 각각 복잡한 시스템 수준 TC 필요."
+  },
+  doip: {
+    name: "DoIP (Diagnostics over IP)",
+    color: "#818cf8",
+    rules: [
+      "Logical Address 기반으로 requirement 분리 — ECU 식별자 매핑 테이블 별도 관리",
+      "ISO 13400-2 표준의 각 서비스(0x01~0x08)별 독립 TC 필요",
+      "인증 핸드셰이크 시나리오 및 Timeout 처리 TC 포함",
+      "게이트웨이 ECU 경유 진단 vs 직접 진단 시나리오 구분",
+      "보안 접근(Security Access, 0x27) 서비스 관련 requirement는 보안팀 검토 필요"
+    ],
+    note: "원격 진단 및 OTA와 연계되어 있어, DoIP requirement 변경 시 연쇄적으로 다른 REQ TC도 영향받음."
+  },
+  spi: {
+    name: "SPI / I²C (Internal Bus)",
+    color: "#f472b6",
+    rules: [
+      "내부 MCU-Peripheral 통신 전용 — 외부 진단 도구로 직접 접근 불가",
+      "Clock rate (SPI SCLK) 및 Mode (CPOL/CPHA) 설정 별도 requirement",
+      "I²C 주소 충돌 시나리오 및 SCL stretch 처리 포함",
+      "별도 하드웨어 테스트 픽스처(Fixture) 및 Logic Analyzer 필요",
+      "BCM 내부 센서(온도, 전류 측정) requirement와 연결됨 — 하드웨어 팀 협업 필수"
+    ],
+    note: "3개 REQ이지만 검증 환경 구축에만 2-3일 소요. 전문 장비 없이는 검증 불가."
+  }
+};
+
+function showProto(key) {
+  const detail = document.getElementById('proto-detail');
+  const data = protoDetails[key];
+  if(!data) return;
+
+  document.querySelectorAll('.protocol-card').forEach(c => c.classList.remove('active'));
+  document.querySelector(`.protocol-card.${key}`).classList.add('active');
+
+  detail.innerHTML = `
+    <div style="display:flex; gap:24px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:240px;">
+        <div style="font-size:18px; font-weight:800; color:${data.color}; margin-bottom:12px;">${data.name}</div>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+          ${data.rules.map(r => `<li style="font-size:12px; color:#94a3b8; display:flex; gap:8px;"><span style="color:${data.color}; flex-shrink:0;">›</span><span>${r}</span></li>`).join('')}
+        </ul>
+      </div>
+      <div style="max-width:220px; background:rgba(255,255,255,0.03); border-radius:8px; padding:16px; align-self:flex-start;">
+        <div style="font-size:11px; color:#4b5a7a; margin-bottom:8px; letter-spacing:1px;">⚠️ 주의사항</div>
+        <div style="font-size:12px; color:#fbbf24; line-height:1.6;">${data.note}</div>
+      </div>
+    </div>
+  `;
+}
+
+// ── SCREEN 5: ECU GRID ──────────────────────
+const ECU_NAMES = [
+  "ECM","TCM","ABS","EPS","BCM","ADAS","SRS","IPC",
+  "HU","AVN","HVAC","PBM","GW","PSCM","DCM","BMS",
+  "OBC","VCU","MCU","ICCU","LDC","PCS","EWP","EOP",
+  "CCM","ACC","LKA","BSD","FCW","LDW","HBA","AEB",
+  "SBW","AWD","CDC","ECS","EHB","IDB","CVT","AT",
+  "TPMS","RDC","WHL-FL","WHL-FR","WHL-RL","WHL-RR","SAS","YRS",
+  "PDC-F","PDC-R","CMS-L","CMS-R","LiDAR-F","LiDAR-R","CAM-F","CAM-R",
+  "CAM-L","CAM-R2","RADAR-F","RADAR-FL","RADAR-FR","RADAR-RL","RADAR-RR","V2X",
+  "TEL","WIFI","BT","NFC","UWB","ETH-SW","CAN-GW","LIN-M",
+  "LAMP-F","LAMP-R","WIPER","MIRROR","SEAT-FL","SEAT-FR","SEAT-RL","SEAT-RR",
+  "ROOF","TRUNK","HORN","CLU-L","CLU-R","CLUSTER","HUD","DMS",
+  "OMS","AUDIO","AMP","ANT","CHG-AC","CHG-DC","SCD","FPD",
+  "BDU","PDU-F","PDU-R","CMU-1","CMU-2","CSC","BMU","SOC-MON"
+];
+
+function buildEcuGrid() {
+  const grid = document.getElementById('ecu-grid');
+  grid.innerHTML = '';
+  for(let i=0; i<100; i++) {
+    const div = document.createElement('div');
+    div.className = 'ecu-block';
+    div.dataset.i = i;
+    const name = ECU_NAMES[i] || `ECU-${i+1}`;
+    div.innerHTML = `<div style="font-size:8px; font-weight:800;">${name}</div><div style="font-size:7px; margin-top:1px;">#${i+1}</div>`;
+
+    if(i < 46) {
+      div.classList.add('done');
+      div.title = `${name} — 완료`;
+    } else if(i === 46) {
+      div.classList.add('current');
+      div.title = `${name} — 방금 완료 (당신이 작업한 ECU)`;
+    }
+    grid.appendChild(div);
+  }
+
+  // Animate remaining time
+  setTimeout(() => {
+    document.getElementById('time-display').textContent = '~9개월';
+    document.getElementById('time-sub').textContent = '53개 ECU 남음 × 평균 5.1일/ECU (= 270일) — 물론 당신 혼자가 아닙니다. 그런데 팀 전체가 100명이어도…';
+    document.getElementById('scale-fill').style.width = '47%';
+    document.getElementById('scale-fill').style.background = '#f59e0b';
+  }, 400);
+}
+
+// ── SCREEN 6: FINALE ──────────────────────
+function animateFinale() {
+  const targets = [
+    { id: 'fin1', target: 18, suffix: '개월', label: '', step: 0.3 },
+    { id: 'fin2', target: 312, suffix: '+개', label: '', step: 8 },
+    { id: 'fin3', target: 31200, suffix: '+개', label: '', step: 800 },
+    { id: 'fin4', target: 100, suffix: 'M+', label: 'Lines', step: 2 },
+    { id: 'fin5', target: 8, suffix: '개', label: 'Protocol', step: 1 },
+    { id: 'fin6', target: 23, suffix: '%', label: '', step: 0.6 },
+  ];
+
+  targets.forEach(t => {
+    let current = 0;
+    const el = document.getElementById(t.id);
+    const timer = setInterval(() => {
+      current = Math.min(current + t.step, t.target);
+      el.textContent = Math.floor(current) + t.suffix;
+      if(current >= t.target) clearInterval(timer);
+    }, 30);
+  });
+}
+
+// ── INIT ──────────────────────────────────
+goTo(0);
+</script>
+</body>
+</html>
