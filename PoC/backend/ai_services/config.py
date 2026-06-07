@@ -3,12 +3,25 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
+# Load backend/.env into os.environ before any os.getenv() calls.
+# Uses a plain reader so there is no dependency on python-dotenv being installed.
+def _load_env_file() -> None:
+    env_file = Path(__file__).resolve().parent.parent / ".env"
+    if not env_file.exists():
+        return
+    for line in env_file.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+_load_env_file()
 
 
 def _get_bool(name: str, default: bool = False) -> bool:
