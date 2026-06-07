@@ -1,0 +1,62 @@
+{
+  "dataset_name": "seed_reference_mappings",
+  "description": "Small unverified seed reference set derived from the internal reusable test portfolio. It is context for C1 matching and is not ground truth.",
+  "reference_mappings": [
+    {
+      "requirement_example": "Brake control shall detect brake pressure sensor failure within the required diagnostic time.",
+      "test_case_id": "TC-BRK-002",
+      "domain": "braking",
+      "coverage_type": "direct",
+      "reason": "The test directly checks brake pressure sensor fault detection timing."
+    },
+    {
+      "requirement_example": "Steering assist shall enter manual fallback after a steering angle sensor fault.",
+      "test_case_id": "TC-STR-001",
+      "domain": "steering",
+      "coverage_type": "direct",
+      "reason": "The test directly verifies manual steering fallback after sensor fault detection."
+    },
+    {
+      "requirement_example": "The lighting controller shall use a safe default mode when ambient light input is unavailable.",
+      "test_case_id": "TC-LGT-005",
+      "domain": "lighting",
+      "coverage_type": "direct",
+      "reason": "The test verifies safe default lighting behavior after sensor input loss."
+    },
+    {
+      "requirement_example": "Powertrain torque shall be reduced when accelerator pedal signals are inconsistent.",
+      "test_case_id": "TC-TRQ-002",
+      "domain": "powertrain",
+      "coverage_type": "direct",
+      "reason": "The test verifies torque reduction for inconsistent pedal signals."
+    },
+    {
+      "requirement_example": "The restraint controller shall store diagnostic evidence after a deployment-related fault.",
+      "test_case_id": "TC-SRS-008",
+      "domain": "restraint",
+      "coverage_type": "partial",
+      "reason": "The reusable test provides related diagnostic storage evidence but may require deployment-specific validation."
+    },
+    {
+      "requirement_example": "The battery system shall detect thermal runaway risk and store fault data.",
+      "test_case_id": "TC-BMS-008",
+      "domain": "battery",
+      "coverage_type": "partial",
+      "reason": "The test provides reusable battery fault storage evidence for thermal-risk conditions."
+    },
+    {
+      "requirement_example": "Cruise control shall allow immediate driver override during active control.",
+      "test_case_id": "TC-CC-004",
+      "domain": "cruise_control",
+      "coverage_type": "direct",
+      "reason": "The test directly verifies driver override priority."
+    },
+    {
+      "requirement_example": "The instrument cluster shall show high-priority safety warnings within the required latency.",
+      "test_case_id": "TC-CLU-006",
+      "domain": "instrument_cluster",
+      "coverage_type": "partial",
+      "reason": "The software-level test supports warning latency evidence, while physical display validation remains external."
+    }
+  ]
+}

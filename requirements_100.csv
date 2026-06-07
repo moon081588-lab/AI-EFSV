@@ -1,0 +1,101 @@
+requirement_id,description,asil_level
+REQ-001,Brake control shall maintain commanded braking force within plus or minus 5 percent under normal braking conditions.,D
+REQ-002,Brake control shall detect brake pressure sensor failure within 100 ms of signal loss.,D
+REQ-003,Brake control shall enter degraded braking mode when hydraulic pressure is below the minimum safe threshold.,D
+REQ-004,Brake control shall alert the driver when regenerative braking is unavailable.,C
+REQ-005,Brake control shall prioritize friction braking when regenerative braking torque is insufficient.,D
+REQ-006,Brake control shall prevent unintended brake release during emergency braking.,D
+REQ-007,Brake control shall maintain stable brake force distribution during split-mu road conditions.,D
+REQ-008,Brake control shall record a diagnostic trouble code when brake actuator response exceeds the allowed delay.,C
+REQ-009,Brake control shall disable automatic hold when vehicle speed exceeds the configured release threshold.,B
+REQ-010,Brake control shall confirm brake pedal plausibility using redundant pedal position signals.,D
+REQ-011,Steering assist shall transition to manual fallback within 100 ms after steering angle sensor fault detection.,C
+REQ-012,Steering assist shall limit assistance torque when steering torque sensor values are inconsistent.,C
+REQ-013,Steering assist shall provide driver warning when electric power steering enters degraded mode.,B
+REQ-014,Steering assist shall prevent unintended steering torque during ignition-on self-test.,D
+REQ-015,Steering assist shall store a diagnostic trouble code when motor current exceeds the safe operating limit.,C
+REQ-016,Steering assist shall reduce assistance smoothly when battery voltage falls below the operating threshold.,C
+REQ-017,Steering assist shall verify steering angle sensor plausibility before enabling lane keeping support.,C
+REQ-018,Steering assist shall maintain manual steering availability after power assist failure.,D
+REQ-019,Steering assist shall suppress assistance output when calibration data is invalid.,C
+REQ-020,Steering assist shall detect steering motor overheating and request torque derating.,C
+REQ-021,Headlamp control shall maintain legally compliant beam intensity during supply voltage fluctuation.,B
+REQ-022,Headlamp control shall switch to low beam when high beam actuator feedback is invalid.,B
+REQ-023,Headlamp control shall alert the driver when adaptive headlamp leveling fails.,A
+REQ-024,Headlamp control shall prevent glare by lowering beam angle when rear axle load increases.,B
+REQ-025,Headlamp control shall enter safe default mode if ambient light sensor input is unavailable.,A
+REQ-026,Headlamp control shall verify left and right lamp synchronization during automatic beam adjustment.,A
+REQ-027,Headlamp control shall record a diagnostic trouble code when LED driver temperature exceeds threshold.,A
+REQ-028,Headlamp control shall maintain daytime running lamp operation after non-critical adaptive lighting failure.,QM
+REQ-029,Headlamp control shall detect open circuit failure in the low beam output channel.,A
+REQ-030,Headlamp control shall disable adaptive bending function if steering angle input is implausible.,B
+REQ-031,Engine control shall limit torque to prevent wheel spin on icy or low-traction road surfaces.,C
+REQ-032,Engine control shall reduce torque output when accelerator pedal signals are inconsistent.,D
+REQ-033,Engine control shall enter limp-home mode when throttle actuator feedback is invalid.,D
+REQ-034,Engine control shall prevent unintended acceleration during startup initialization.,D
+REQ-035,Engine control shall monitor throttle position response time and flag delayed actuator movement.,C
+REQ-036,Engine control shall suppress torque request when brake override is active.,D
+REQ-037,Engine control shall reduce torque when engine coolant temperature exceeds the thermal protection threshold.,C
+REQ-038,Engine control shall store freeze-frame data after safety-relevant torque monitoring fault detection.,C
+REQ-039,Engine control shall validate torque request plausibility before forwarding output to the powertrain actuator.,D
+REQ-040,Engine control shall reset torque command to safe default after watchdog timeout.,D
+REQ-041,Airbag control shall deploy the frontal airbag within 20 ms after confirmed crash detection.,D
+REQ-042,Airbag control shall suppress passenger airbag deployment when occupant weight is below 30 kg.,C
+REQ-043,Airbag control shall verify crash sensor plausibility before deployment decision.,D
+REQ-044,Airbag control shall record deployment event data after crash-triggered activation.,D
+REQ-045,Airbag control shall alert the driver if the restraint control module detects internal memory corruption.,C
+REQ-046,Airbag control shall disable deployment output if squib circuit resistance is outside the allowed range.,D
+REQ-047,Airbag control shall execute power-on self-test before enabling deployment readiness.,C
+REQ-048,Airbag control shall maintain deployment readiness during transient battery voltage drop.,D
+REQ-049,Airbag control shall detect side-impact sensor failure and set the corresponding diagnostic trouble code.,C
+REQ-050,Airbag control shall prevent unintended deployment during normal driving vibration events.,D
+REQ-051,Instrument cluster shall display coolant temperature within plus or minus 3 degrees Celsius accuracy.,A
+REQ-052,Instrument cluster shall show brake system warning within 1 second after receiving a critical brake fault signal.,C
+REQ-053,Instrument cluster shall display airbag warning when restraint system status is degraded.,B
+REQ-054,Instrument cluster shall show battery thermal warning when battery management system requests driver alert.,B
+REQ-055,Instrument cluster shall display steering assist warning when electric power steering enters fallback mode.,B
+REQ-056,Instrument cluster shall prioritize safety-critical warnings over infotainment notifications.,C
+REQ-057,Instrument cluster shall maintain warning indicator visibility under day and night brightness settings.,A
+REQ-058,Instrument cluster shall detect display communication timeout and enter safe warning display mode.,B
+REQ-059,Instrument cluster shall store the last active warning state after ignition cycle reset.,A
+REQ-060,Instrument cluster shall confirm telltale lamp operation during startup self-check.,A
+REQ-061,Door lock control shall not unlock doors when vehicle speed is above 5 kilometers per hour.,B
+REQ-062,Door lock control shall automatically unlock doors after crash event confirmation.,C
+REQ-063,Door lock control shall ignore unlock requests when child lock safety mode is active.,B
+REQ-064,Door lock control shall detect door latch sensor inconsistency and notify the driver.,A
+REQ-065,Door lock control shall maintain locked state after transient communication loss with body control module.,B
+REQ-066,Door lock control shall record a diagnostic trouble code when lock actuator movement is incomplete.,A
+REQ-067,Door lock control shall verify driver door closed status before enabling drive-away locking.,A
+REQ-068,Door lock control shall prevent unintended unlocking during remote key authentication failure.,B
+REQ-069,Door lock control shall disable passive unlock when key signal strength is below the security threshold.,QM
+REQ-070,Door lock control shall provide audible feedback after successful remote lock command.,QM
+REQ-071,Battery management system shall alert the driver when battery temperature exceeds safe thermal thresholds.,C
+REQ-072,Battery management system shall limit charging current when cell temperature exceeds the warning threshold.,C
+REQ-073,Battery management system shall open the high-voltage contactor when isolation resistance is below safe threshold.,D
+REQ-074,Battery management system shall detect cell voltage imbalance above the configured diagnostic threshold.,C
+REQ-075,Battery management system shall reduce discharge power when battery state of charge is critically low.,B
+REQ-076,Battery management system shall store fault data when thermal runaway risk condition is detected.,D
+REQ-077,Battery management system shall verify current sensor plausibility using redundant measurement paths.,C
+REQ-078,Battery management system shall request vehicle shutdown when high-voltage interlock loop is open.,D
+REQ-079,Battery management system shall communicate charging limitation status to the instrument cluster.,B
+REQ-080,Battery management system shall enter safe state after internal watchdog failure.,D
+REQ-081,Cruise control shall disengage immediately when the brake pedal is pressed.,A
+REQ-082,Cruise control shall disengage when accelerator pedal position exceeds override threshold.,A
+REQ-083,Cruise control shall not activate below the minimum configured vehicle speed.,QM
+REQ-084,Cruise control shall alert the driver when radar input required for adaptive cruise is unavailable.,B
+REQ-085,Cruise control shall maintain target speed within plus or minus 2 kilometers per hour on level road.,QM
+REQ-086,Cruise control shall reject activation request when brake switch status is invalid.,B
+REQ-087,Cruise control shall reduce set speed smoothly when following distance becomes unsafe.,C
+REQ-088,Cruise control shall cancel control output after communication timeout with powertrain controller.,B
+REQ-089,Cruise control shall store diagnostic data when speed control actuator response is delayed.,A
+REQ-090,Cruise control shall provide visual indication when the system is active.,QM
+REQ-091,Rearview camera shall display the camera feed within 2 seconds after reverse gear selection.,QM
+REQ-092,Rearview camera shall show a driver warning when camera video signal is unavailable.,A
+REQ-093,Rearview camera shall maintain guide line overlay alignment within the configured tolerance.,QM
+REQ-094,Rearview camera shall switch off the rear display after reverse gear is disengaged.,QM
+REQ-095,Rearview camera shall detect camera communication timeout and display fallback warning screen.,A
+REQ-096,Rearview camera shall maintain image brightness adjustment during low-light reverse operation.,QM
+REQ-097,Rearview camera shall prevent frozen image display for more than 500 ms during active reverse mode.,B
+REQ-098,Rearview camera shall verify video frame freshness before rendering the image to the display.,B
+REQ-099,Rearview camera shall store diagnostic trouble code when camera module self-test fails.,A
+REQ-100,Rearview camera shall disable dynamic guide lines if steering angle input is invalid.,A
