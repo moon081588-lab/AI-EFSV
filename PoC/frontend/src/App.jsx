@@ -69,11 +69,14 @@ export default function App() {
 
   const [activeSection, setActiveSection] = React.useState('upload');
 
-  // Auto-advance to the first newly unlocked section when data arrives
-  React.useEffect(() => { if (analysis)              setActiveSection('parser-summary'); }, [analysis]);
-  React.useEffect(() => { if (testResults)            setActiveSection('test-results');  }, [testResults]);
-  React.useEffect(() => { if (reviewItems.length > 0) setActiveSection('anomaly-review');}, [reviewItems.length]);
-  React.useEffect(() => { if (report)                 setActiveSection('draft-report');  }, [report]);
+  // Auto-advance tabs when data arrives — only top-level state used as deps (no TDZ risk)
+  React.useEffect(() => { if (analysis)    setActiveSection('parser-summary'); }, [analysis]);
+  React.useEffect(() => {
+    if (!testResults) return;
+    const hasReview = (testResults.results || []).some((r) => r.result === 'REVIEW');
+    setActiveSection(hasReview ? 'anomaly-review' : 'test-results');
+  }, [testResults]);
+  React.useEffect(() => { if (report)      setActiveSection('draft-report');   }, [report]);
 
   function appendAuditEvent(eventType, actor, relatedItem, details) {
     const now = new Date();
@@ -829,6 +832,7 @@ export default function App() {
   if (testResults) visibleSections.add('test-results');
   if (reviewItems.length > 0) visibleSections.add('anomaly-review');
   if (report) visibleSections.add('draft-report');
+
 
   return (
     <main className="page">
