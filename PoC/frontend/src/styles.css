@@ -3734,3 +3734,99 @@ td {
   padding: 0.5rem 0.7rem;
   white-space: nowrap;
 }
+
+/* ── Sticky navigation sidebar ─────────────────────────────────────────── */
+
+.app-layout {
+  display: flex;
+  align-items: flex-start;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.app-layout .page {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.sticky-nav {
+  position: sticky;
+  top: 20px;
+  width: 164px;
+  min-width: 164px;
+  flex-shrink: 0;
+  padding: 24px 8px 24px 16px;
+  margin-top: 28px;
+}
+
+.sticky-nav-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 0 0 8px 4px;
+}
+
+.sticky-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sticky-nav-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-family: inherit;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  margin-bottom: 1px;
+  line-height: 1.4;
+}
+
+.sticky-nav-item:hover {
+  background: #f1f5f9;
+  color: #1e40af;
+}
+
+.sticky-nav-item--active {
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+@media (max-width: 860px) {
+  .app-layout {
+    flex-direction: column;
+  }
+
+  .sticky-nav {
+    position: static;
+    width: 100%;
+    padding: 12px 16px 4px;
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .sticky-nav-title {
+    margin: 0;
+  }
+
+  .sticky-nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}

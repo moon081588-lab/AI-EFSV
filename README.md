@@ -40,7 +40,7 @@ start.bat       ← Windows launcher
 
 **One-command launch:**
 ```bash
-~/Downloads/SAD-main/"6th iteration"/PoC/start.sh
+~/Downloads/SAD-main/PoC/start.sh
 ```
 
 This opens the backend, frontend, and ngrok in separate Terminal windows automatically.
@@ -49,14 +49,14 @@ This opens the backend, frontend, and ngrok in separate Terminal windows automat
 
 Terminal 1 — Backend:
 ```bash
-cd ~/Downloads/SAD-main/"6th iteration"/PoC/backend
+cd ~/Downloads/SAD-main/PoC/backend
 source .venv/bin/activate
 python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 Terminal 2 — Frontend:
 ```bash
-cd ~/Downloads/SAD-main/"6th iteration"/PoC/frontend
+cd ~/Downloads/SAD-main/PoC/frontend
 npm run dev
 ```
 
@@ -68,14 +68,14 @@ Then open [http://localhost:5173](http://localhost:5173)
 
 Terminal 1 — Backend:
 ```cmd
-cd "6th iteration\PoC\backend"
+cd "PoC\backend"
 .venv\Scripts\activate
 python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 Terminal 2 — Frontend:
 ```cmd
-cd "6th iteration\PoC\frontend"
+cd "PoC\frontend"
 npm run dev
 ```
 
@@ -83,7 +83,7 @@ Then open [http://localhost:5173](http://localhost:5173)
 
 Or use the included launcher:
 ```cmd
-"6th iteration\PoC\start.bat"
+"PoC\start.bat"
 ```
 
 ---

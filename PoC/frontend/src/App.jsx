@@ -12,6 +12,7 @@ import FinalReportApprovalGate from './components/FinalReportApprovalGate.jsx';
 import InfoPopup from './components/InfoPopup.jsx';
 import ProtocolExecutionLog from './components/ProtocolExecutionLog.jsx';
 import { ProgressBox, Kpi, DataTable } from './components/shared.jsx';
+import StickyNav from './components/StickyNav.jsx';
 
 import {
   normalizeSummary,
@@ -805,7 +806,24 @@ export default function App() {
             : 'Generating dashboard data';
   const estimatedRemainingMinutes = Math.max(0, Math.ceil((240 - uploadElapsedSeconds) / 60));
 
+  const visibleSections = new Set(['upload']);
+  if (analysis) {
+    visibleSections.add('parser-summary');
+    visibleSections.add('dashboard');
+    visibleSections.add('c1-review');
+    visibleSections.add('regression');
+    visibleSections.add('traceability');
+    visibleSections.add('audit-log');
+    visibleSections.add('export');
+    visibleSections.add('simulation');
+  }
+  if (testResults) visibleSections.add('test-results');
+  if (reviewItems.length > 0) visibleSections.add('anomaly-review');
+  if (report) visibleSections.add('draft-report');
+
   return (
+    <div className="app-layout">
+    <StickyNav visibleSections={visibleSections} />
     <main className="page">
       <header className="hero">
         <h1>AI Assisted Software Verification Tool</h1>
@@ -814,6 +832,7 @@ export default function App() {
       </header>
 
       <section
+        id="upload"
         className={`card upload-card${isDragging ? ' is-dragging' : ''}`}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
@@ -882,9 +901,9 @@ export default function App() {
 
       {analysis && (
         <>
-          <ParserSummary parserInfo={analysis.parserInfo} />
-          <Dashboard summary={activeSummary ?? analysis.summary} />
-          <Candidate1ReviewWorkspace
+          <div id="parser-summary"><ParserSummary parserInfo={analysis.parserInfo} /></div>
+          <div id="dashboard"><Dashboard summary={activeSummary ?? analysis.summary} /></div>
+          <div id="c1-review"><Candidate1ReviewWorkspace
             rows={analysis.candidate1ReviewItems || []}
             decisions={candidate1Decisions}
             reviewNotes={candidate1ReviewNotes}
@@ -893,22 +912,22 @@ export default function App() {
             setReviewNote={setCandidate1ReviewNote}
             setRecoveryRecord={setCandidate1RecoveryRecord}
             appendAuditEvent={appendAuditEvent}
-          />
-          <AIRegressionOptimizer
+          /></div>
+          <div id="regression"><AIRegressionOptimizer
             matches={activeMatches}
             sortMode={optimizerSortMode}
             setSortMode={setOptimizerSortMode}
-          />
-          <TraceabilityMatrix rows={activeTraceabilityMatrix} />
-          <AuditLog rows={combinedAuditLog} liveCount={liveAuditEvents.length} />
-          <ExportCenter
+          /></div>
+          <div id="traceability"><TraceabilityMatrix rows={activeTraceabilityMatrix} /></div>
+          <div id="audit-log"><AuditLog rows={combinedAuditLog} liveCount={liveAuditEvents.length} /></div>
+          <div id="export"><ExportCenter
             hasTraceability={Boolean(activeTraceabilityMatrix.length)}
             hasAuditLog={Boolean(combinedAuditLog.length)}
             exportTraceability={exportTraceabilityMatrix}
             exportAuditLog={exportAuditLog}
-          />
+          /></div>
 
-          <section className="card">
+          <section id="simulation" className="card">
             <div className="section-title">
               <Play size={20} />
               <h2 className="title-with-info">
@@ -931,7 +950,7 @@ export default function App() {
       )}
 
       {testResults && (
-        <section className="card simulated-results-card">
+        <section id="test-results" className="card simulated-results-card">
           <h2 className="title-with-info">
             Simulated Test Results
             <InfoPopup title="Simulated Test Results" content={DASHBOARD_INFO.simulatedResults} />
@@ -947,7 +966,7 @@ export default function App() {
       )}
 
       {reviewItems.length > 0 && (
-        <section className="card combined-review-card">
+        <section id="anomaly-review" className="card combined-review-card">
           <h2 className="title-with-info">
             AI Anomaly Review & Engineer Confirmation
             <InfoPopup title="AI Anomaly Review & Engineer Confirmation" content="Review AI-flagged simulated ECU behavior, upload evidence, document engineering rationale, and confirm whether each result can be used as verification evidence." />
@@ -1043,7 +1062,7 @@ export default function App() {
       )}
 
       {report && (
-        <section className="card report-card">
+        <section id="draft-report" className="card report-card">
           <div className="section-title">
             <FileText size={20} />
             <h2 className="title-with-info">
@@ -1076,5 +1095,6 @@ export default function App() {
         </section>
       )}
     </main>
+    </div>
   );
 }
