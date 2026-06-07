@@ -965,7 +965,48 @@ export default function App() {
             <Kpi title="Execution Review Queue" value={safeTestSummary.reviewCount} />
             <Kpi title="Estimated Total Time" value={`${safeTestSummary.estimatedTotalTimeMinutes} min`} />
           </div>
-          <DataTable rows={safeTestResultRows} limit={250} />
+          <div className="table-wrap">
+            <table className="test-results-table">
+              <thead>
+                <tr>
+                  <th>Result</th>
+                  <th>Test Case ID</th>
+                  <th>Test Case Name</th>
+                  <th>Type</th>
+                  <th>Duration (min)</th>
+                  <th>Signal</th>
+                  <th>Measured Value</th>
+                  <th>Anomaly Type</th>
+                  <th>Confidence</th>
+                  <th>Engineer Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {safeTestResultRows.map((row, i) => {
+                  const result = String(row.result ?? '');
+                  const isPass = result === 'PASS';
+                  return (
+                    <tr key={i}>
+                      <td>
+                        <span className={`status-pill ${isPass ? 'status-pass' : 'status-review'}`}>
+                          {result}
+                        </span>
+                      </td>
+                      <td className="mono-cell">{row.test_case_id}</td>
+                      <td>{row.test_case_name}</td>
+                      <td>{row.test_type}</td>
+                      <td className="num-cell">{row.duration_minutes}</td>
+                      <td className="mono-cell">{row.signal_name}</td>
+                      <td className="truncate-cell" title={String(row.measured_value ?? '')}>{String(row.measured_value ?? '').slice(0, 80)}</td>
+                      <td>{row.anomaly_type ?? '—'}</td>
+                      <td className="num-cell">{row.anomaly_confidence !== undefined ? `${Math.round(row.anomaly_confidence * 100)}%` : '—'}</td>
+                      <td className="truncate-cell" title={String(row.engineer_action ?? '')}>{String(row.engineer_action ?? '').slice(0, 100)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 

@@ -3973,3 +3973,55 @@ td {
   padding: 0;
 }
 .ai-status-refresh:hover { text-decoration: underline; }
+
+/* ── Test Results Table ────────────────────────────────────────────────────── */
+.test-results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.test-results-table th,
+.test-results-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.test-results-table th {
+  background: #f8fafc;
+  font-weight: 600;
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.test-results-table tr:last-child td {
+  border-bottom: none;
+}
+
+.test-results-table tr:hover td {
+  background: #f8fafc;
+}
+
+.test-results-table .mono-cell {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.test-results-table .num-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.test-results-table .truncate-cell {
+  max-width: 240px;
+  overflow: hidden;
+}
+
+.status-pill.status-pass   { background: #dcfce7; color: #15803d; }
+.status-pill.status-review { background: #fef9c3; color: #854d0e; }
