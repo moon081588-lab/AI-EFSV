@@ -1067,7 +1067,7 @@ function App() {
       <header className="hero">
         <h1>AI Assisted Software Verification Tool</h1>
         <p>Upload requirements, match reusable test cases, simulate execution, confirm review items, and draft ISO 26262-style evidence.</p>
-        <p className="address">Frontend: http://127.0.0.1:5173/ · API: http://127.0.0.1:8000/</p>
+        <p className="address">Public URL: https://active-mustard-chemicals.ngrok-free.dev</p>
       </header>
 
       <section
