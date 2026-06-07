@@ -4,13 +4,12 @@ import { DASHBOARD_INFO } from '../constants.js';
 import { formatConfidence } from '../utils.js';
 
 export default function AIAnomalyDetectionReview({ rows }) {
-  const [isOpen, setIsOpen] = React.useState(false);
   const reviewRows = rows.filter((row) => row.reviewRequired);
   const visibleRows = reviewRows.slice(0, 250);
 
   return (
     <section className="card anomaly-card">
-      <button className="anomaly-toggle-header" type="button" onClick={() => setIsOpen((current) => !current)}>
+      <div className="anomaly-toggle-header">
         <div>
           <h2 className="title-with-info">
             AI Anomaly Detection Review
@@ -21,11 +20,9 @@ export default function AIAnomalyDetectionReview({ rows }) {
         <div className="anomaly-toggle-right">
           <span className="anomaly-pill">{rows.length} analyzed</span>
           <span className="anomaly-pill warning">{reviewRows.length} anomalies</span>
-          <span className="anomaly-toggle-icon">{isOpen ? 'Hide review' : 'Show review'}</span>
         </div>
-      </button>
+      </div>
 
-      {isOpen && (
         <div className="anomaly-body">
           <div className="table-wrap anomaly-table-wrap">
             <table className="mis-table anomaly-table">
@@ -72,7 +69,6 @@ export default function AIAnomalyDetectionReview({ rows }) {
             <p className="table-note">Showing first {visibleRows.length} of {reviewRows.length} anomaly review records.</p>
           )}
         </div>
-      )}
     </section>
   );
 }

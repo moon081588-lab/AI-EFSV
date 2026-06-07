@@ -1,8 +1,6 @@
 import React from 'react';
 
 export default function ParserSummary({ parserInfo }) {
-  const [isOpen, setIsOpen] = React.useState(false);
-
   if (!parserInfo) return null;
 
   const warnings = Array.isArray(parserInfo.warnings) ? parserInfo.warnings : [];
@@ -10,18 +8,16 @@ export default function ParserSummary({ parserInfo }) {
 
   return (
     <section className="card parser-summary-card">
-      <button className="parser-toggle-header" type="button" onClick={() => setIsOpen((current) => !current)}>
+      <div className="parser-toggle-header">
         <div>
           <h2>File Parsing Summary</h2>
           <p>The uploaded file was automatically inspected and normalized before verification analysis.</p>
         </div>
         <div className="parser-toggle-right">
           <span className="parser-status-pill">{statusText}</span>
-          <span className="parser-toggle-icon">{isOpen ? 'Hide details' : 'Show details'}</span>
         </div>
-      </button>
+      </div>
 
-      {isOpen && (
         <div className="parser-summary-body">
           <div className="parser-info-grid">
             <div className="parser-info-item">
@@ -69,7 +65,6 @@ export default function ParserSummary({ parserInfo }) {
             </div>
           )}
         </div>
-      )}
     </section>
   );
 }

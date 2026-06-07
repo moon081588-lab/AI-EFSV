@@ -3,13 +3,12 @@ import InfoPopup from './InfoPopup.jsx';
 import { DASHBOARD_INFO } from '../constants.js';
 
 export default function AuditLog({ rows, liveCount = 0 }) {
-  const [isOpen, setIsOpen] = React.useState(false);
   const visibleRows = rows.slice().reverse().slice(0, 300);
   const latestLiveEvent = rows.slice().reverse().find((row) => row.isLive || String(row.eventId || '').startsWith('LIVE'));
 
   return (
     <section className="card audit-card">
-      <button className="audit-toggle-header" type="button" onClick={() => setIsOpen((current) => !current)}>
+      <div className="audit-toggle-header">
         <div>
           <h2 className="title-with-info">
             Audit Log
@@ -20,9 +19,8 @@ export default function AuditLog({ rows, liveCount = 0 }) {
         <div className="audit-toggle-right">
           <span className="audit-pill">{rows.length} total events</span>
           <span className="audit-pill live">{liveCount} live events</span>
-          <span className="audit-toggle-icon">{isOpen ? 'Hide log' : 'Show log'}</span>
         </div>
-      </button>
+      </div>
 
       {latestLiveEvent && (
         <div className="audit-live-note">
@@ -30,8 +28,7 @@ export default function AuditLog({ rows, liveCount = 0 }) {
         </div>
       )}
 
-      {isOpen && (
-        <div className="audit-body">
+      <div className="audit-body">
           <div className="table-wrap audit-table-wrap">
             <table className="mis-table audit-table">
               <thead>
@@ -66,7 +63,6 @@ export default function AuditLog({ rows, liveCount = 0 }) {
             )}
           </div>
         </div>
-      )}
     </section>
   );
 }

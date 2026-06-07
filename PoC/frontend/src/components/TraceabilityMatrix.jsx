@@ -4,13 +4,12 @@ import { DASHBOARD_INFO } from '../constants.js';
 import { asilColorClass, formatConfidence } from '../utils.js';
 
 export default function TraceabilityMatrix({ rows }) {
-  const [isOpen, setIsOpen] = React.useState(false);
   const visibleRows = rows.slice(0, 250);
   const reviewRequired = rows.filter((row) => String(row.reviewStatus || '').toLowerCase().includes('review')).length;
 
   return (
     <section className="card traceability-card">
-      <button className="traceability-toggle-header" type="button" onClick={() => setIsOpen((current) => !current)}>
+      <div className="traceability-toggle-header">
         <div>
           <h2 className="title-with-info">
             Traceability Matrix
@@ -21,11 +20,9 @@ export default function TraceabilityMatrix({ rows }) {
         <div className="traceability-toggle-right">
           <span className="traceability-pill">{rows.length} mappings</span>
           <span className="traceability-pill warning">{reviewRequired} review gates</span>
-          <span className="traceability-toggle-icon">{isOpen ? 'Hide matrix' : 'Show matrix'}</span>
         </div>
-      </button>
+      </div>
 
-      {isOpen && (
         <div className="traceability-body">
           <div className="table-wrap traceability-table-wrap">
             <table className="mis-table traceability-table">
@@ -66,7 +63,6 @@ export default function TraceabilityMatrix({ rows }) {
             <p className="table-note">Showing first {visibleRows.length} of {rows.length} traceability mappings.</p>
           )}
         </div>
-      )}
     </section>
   );
 }

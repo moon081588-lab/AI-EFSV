@@ -5,7 +5,6 @@ import { DASHBOARD_INFO } from '../constants.js';
 import { asilColorClass, formatConfidence, formatHours, formatMappingReviewReasonCode } from '../utils.js';
 
 export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes, recoveryRecords, setDecision, setReviewNote, setRecoveryRecord, appendAuditEvent }) {
-  const [isOpen, setIsOpen] = React.useState(false);
   const [candidate1Filter, setCandidate1Filter] = React.useState('manual-review');
   const [selectedAlternatives, setSelectedAlternatives] = React.useState({});
   const [recoveryActions, setRecoveryActions] = React.useState({});
@@ -194,7 +193,7 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
 
   return (
     <section className="card candidate1-card">
-      <button className="candidate1-toggle-header" type="button" onClick={() => setIsOpen((current) => !current)}>
+      <div className="candidate1-toggle-header">
         <div>
           <h2 className="title-with-info">
             AI Requirement Extraction & Test Case Derivation
@@ -208,12 +207,9 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
           <span className="candidate1-pill success">{readyRows.length} ready for approval</span>
           {untestableRows.length > 0 && <span className="candidate1-pill warning">{untestableRows.length} untestable</span>}
           {rejectedRows.length > 0 && <span className="candidate1-pill danger">{rejectedRows.length} rejected</span>}
-          <span className="candidate1-toggle-icon">{isOpen ? 'Hide workspace' : 'Show workspace'}</span>
         </div>
-      </button>
-
-      {isOpen && (
-        <div className="candidate1-body">
+      </div>
+      <div className="candidate1-body">
           <div className="candidate1-filter-tabs">
             {filterOptions.map((option) => (
               <button
@@ -679,7 +675,6 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
             </div>
           )}
         </div>
-      )}
     </section>
   );
 }
