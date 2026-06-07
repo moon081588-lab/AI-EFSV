@@ -51,7 +51,7 @@ Terminal 1 — Backend:
 ```bash
 cd ~/Downloads/SAD-main/PoC/backend
 source .venv/bin/activate
-python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+python3 -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 Terminal 2 — Frontend:
@@ -70,7 +70,7 @@ Terminal 1 — Backend:
 ```cmd
 cd "6th iteration\PoC\backend"
 .venv\Scripts\activate
-python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+python3 -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 Terminal 2 — Frontend:

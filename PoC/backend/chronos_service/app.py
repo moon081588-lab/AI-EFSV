@@ -18,6 +18,12 @@ _pipeline: Any = None
 _device = "cpu"
 _load_error: Optional[str] = None
 _load_lock = threading.Lock()
+
+
+@app.on_event("startup")
+def _auto_load() -> None:
+    """Start loading the Chronos model in the background at service startup."""
+    threading.Thread(target=_load_pipeline, daemon=True).start()
 MIN_CHRONOS_SERIES_LENGTH = 12
 
 
