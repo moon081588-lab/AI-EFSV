@@ -8,7 +8,7 @@ A React + FastAPI proof-of-concept for AI-assisted automotive software verificat
 
 Open the link above in any browser on any device — no installation required.
 
-> Note: the demo runs on a local Mac and must be online for the link to work.
+> Note: the demo runs on my personal local Mac and must be online for the link to work.
 
 ---
 
