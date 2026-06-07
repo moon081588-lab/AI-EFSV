@@ -3975,24 +3975,28 @@ td {
 .ai-status-refresh:hover { text-decoration: underline; }
 
 /* ── Test Results Table ────────────────────────────────────────────────────── */
+.simulated-results-card .table-wrap {
+  overflow-x: auto;
+}
+
 .test-results-table {
-  width: 100%;
+  min-width: 1050px; /* wider than container → wrapper scrolls */
   border-collapse: collapse;
   font-size: 13px;
-  table-layout: fixed; /* critical: enforces column widths, prevents cell blow-out */
+  table-layout: fixed;
 }
 
 /* Column widths — must match column order in JSX */
-.test-results-table th:nth-child(1)  { width: 80px; }   /* Result */
-.test-results-table th:nth-child(2)  { width: 110px; }  /* Test Case ID */
-.test-results-table th:nth-child(3)  { width: 180px; }  /* Test Case Name */
-.test-results-table th:nth-child(4)  { width: 110px; }  /* Type */
-.test-results-table th:nth-child(5)  { width: 80px; }   /* Duration */
-.test-results-table th:nth-child(6)  { width: 130px; }  /* Signal */
-.test-results-table th:nth-child(7)  { width: 200px; }  /* Measured Value */
-.test-results-table th:nth-child(8)  { width: 120px; }  /* Anomaly Type */
-.test-results-table th:nth-child(9)  { width: 80px; }   /* Confidence */
-.test-results-table th:nth-child(10) { width: auto; }   /* Engineer Action — takes remaining space */
+.test-results-table th:nth-child(1)  { width: 74px; }  /* Result */
+.test-results-table th:nth-child(2)  { width: 96px; }  /* Test Case ID */
+.test-results-table th:nth-child(3)  { width: 160px; } /* Test Case Name */
+.test-results-table th:nth-child(4)  { width: 100px; } /* Type */
+.test-results-table th:nth-child(5)  { width: 72px; }  /* Duration */
+.test-results-table th:nth-child(6)  { width: 120px; } /* Signal */
+.test-results-table th:nth-child(7)  { width: 180px; } /* Measured Value */
+.test-results-table th:nth-child(8)  { width: 110px; } /* Anomaly Type */
+.test-results-table th:nth-child(9)  { width: 72px; }  /* Confidence */
+.test-results-table th:nth-child(10) { width: 220px; } /* Engineer Action */
 
 .test-results-table th,
 .test-results-table td {
@@ -4022,12 +4026,12 @@ td {
 
 .test-results-table .num-cell { text-align: right; }
 
-/* Engineer Action: allow wrapping so long text doesn't get cut */
+/* Engineer Action: clamp to 2 lines */
 .test-results-table .truncate-cell {
   white-space: normal;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
