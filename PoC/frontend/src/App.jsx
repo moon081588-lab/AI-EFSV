@@ -12,7 +12,7 @@ import FinalReportApprovalGate from './components/FinalReportApprovalGate.jsx';
 import InfoPopup from './components/InfoPopup.jsx';
 import ProtocolExecutionLog from './components/ProtocolExecutionLog.jsx';
 import { ProgressBox, Kpi, DataTable } from './components/shared.jsx';
-import StickyNav from './components/StickyNav.jsx';
+import TabNav from './components/TabNav.jsx';
 import AIStatusBadge from './components/AIStatusBadge.jsx';
 
 import {
@@ -66,6 +66,14 @@ export default function App() {
   const dragCounterRef = React.useRef(0);
   const testTimerRef = React.useRef(null);
   const reportTimerRef = React.useRef(null);
+
+  const [activeSection, setActiveSection] = React.useState('upload');
+
+  // Auto-advance to the first newly unlocked section when data arrives
+  React.useEffect(() => { if (analysis)              setActiveSection('parser-summary'); }, [analysis]);
+  React.useEffect(() => { if (testResults)            setActiveSection('test-results');  }, [testResults]);
+  React.useEffect(() => { if (reviewItems.length > 0) setActiveSection('anomaly-review');}, [reviewItems.length]);
+  React.useEffect(() => { if (report)                 setActiveSection('draft-report');  }, [report]);
 
   function appendAuditEvent(eventType, actor, relatedItem, details) {
     const now = new Date();
@@ -823,8 +831,6 @@ export default function App() {
   if (report) visibleSections.add('draft-report');
 
   return (
-    <div className="app-layout">
-    <StickyNav visibleSections={visibleSections} />
     <main className="page">
       <header className="hero">
         <div className="hero-top">
@@ -834,8 +840,9 @@ export default function App() {
         <p>Upload requirements, match reusable test cases, simulate execution, confirm review items, and draft ISO 26262-style evidence.</p>
         <p className="address">Public URL: https://active-mustard-chemicals.ngrok-free.dev</p>
       </header>
+      <TabNav activeSection={activeSection} visibleSections={visibleSections} onTabChange={setActiveSection} />
 
-      <section
+      {activeSection === 'upload' && <section
         id="upload"
         className={`card upload-card${isDragging ? ' is-dragging' : ''}`}
         onDragEnter={handleDragEnter}
@@ -901,59 +908,69 @@ export default function App() {
 
         {uploadError && <div className="error-box">{uploadError}</div>}
         {uploadNotice && <div className="notice-box">{uploadNotice}</div>}
-      </section>
+      </section>}
 
-      {analysis && (
-        <>
-          <div id="parser-summary"><ParserSummary parserInfo={analysis.parserInfo} /></div>
-          <div id="dashboard"><Dashboard summary={activeSummary ?? analysis.summary} /></div>
-          <div id="c1-review"><Candidate1ReviewWorkspace
-            rows={analysis.candidate1ReviewItems || []}
-            decisions={candidate1Decisions}
-            reviewNotes={candidate1ReviewNotes}
-            recoveryRecords={candidate1RecoveryRecords}
-            setDecision={setCandidate1Decision}
-            setReviewNote={setCandidate1ReviewNote}
-            setRecoveryRecord={setCandidate1RecoveryRecord}
-            appendAuditEvent={appendAuditEvent}
-          /></div>
-          <div id="regression"><AIRegressionOptimizer
-            matches={activeMatches}
-            sortMode={optimizerSortMode}
-            setSortMode={setOptimizerSortMode}
-          /></div>
-          <div id="traceability"><TraceabilityMatrix rows={activeTraceabilityMatrix} /></div>
-          <div id="audit-log"><AuditLog rows={combinedAuditLog} liveCount={liveAuditEvents.length} /></div>
-          <div id="export"><ExportCenter
-            hasTraceability={Boolean(activeTraceabilityMatrix.length)}
-            hasAuditLog={Boolean(combinedAuditLog.length)}
-            exportTraceability={exportTraceabilityMatrix}
-            exportAuditLog={exportAuditLog}
-          /></div>
-
-          <section id="simulation" className="card">
-            <div className="section-title">
-              <Play size={20} />
-              <h2 className="title-with-info">
-                Verification Simulation
-                <InfoPopup title="Verification Simulation" content={DASHBOARD_INFO.verificationSimulation} />
-              </h2>
-            </div>
-            <button className="primary-button" onClick={runTests} disabled={testStage === 'running'}>
-              {testStage === 'running' ? 'Running Verification Simulation...' : 'Run Verification Simulation'}
-            </button>
-
-            {testStage !== 'idle' && (
-              <>
-                <ProgressBox title={testStage === 'done' ? 'Verification simulation complete.' : 'Executing matched verification test cases...'} progress={testProgress} />
-                <ProtocolExecutionLog logs={executionLogs} />
-              </>
-            )}
-          </section>
-        </>
+      {activeSection === 'parser-summary' && analysis && (
+        <div id="parser-summary"><ParserSummary parserInfo={analysis.parserInfo} /></div>
+      )}
+      {activeSection === 'dashboard' && analysis && (
+        <div id="dashboard"><Dashboard summary={activeSummary ?? analysis.summary} /></div>
+      )}
+      {activeSection === 'c1-review' && analysis && (
+        <div id="c1-review"><Candidate1ReviewWorkspace
+          rows={analysis.candidate1ReviewItems || []}
+          decisions={candidate1Decisions}
+          reviewNotes={candidate1ReviewNotes}
+          recoveryRecords={candidate1RecoveryRecords}
+          setDecision={setCandidate1Decision}
+          setReviewNote={setCandidate1ReviewNote}
+          setRecoveryRecord={setCandidate1RecoveryRecord}
+          appendAuditEvent={appendAuditEvent}
+        /></div>
+      )}
+      {activeSection === 'regression' && analysis && (
+        <div id="regression"><AIRegressionOptimizer
+          matches={activeMatches}
+          sortMode={optimizerSortMode}
+          setSortMode={setOptimizerSortMode}
+        /></div>
+      )}
+      {activeSection === 'traceability' && analysis && (
+        <div id="traceability"><TraceabilityMatrix rows={activeTraceabilityMatrix} /></div>
+      )}
+      {activeSection === 'audit-log' && analysis && (
+        <div id="audit-log"><AuditLog rows={combinedAuditLog} liveCount={liveAuditEvents.length} /></div>
+      )}
+      {activeSection === 'export' && analysis && (
+        <div id="export"><ExportCenter
+          hasTraceability={Boolean(activeTraceabilityMatrix.length)}
+          hasAuditLog={Boolean(combinedAuditLog.length)}
+          exportTraceability={exportTraceabilityMatrix}
+          exportAuditLog={exportAuditLog}
+        /></div>
+      )}
+      {activeSection === 'simulation' && analysis && (
+        <section id="simulation" className="card">
+          <div className="section-title">
+            <Play size={20} />
+            <h2 className="title-with-info">
+              Verification Simulation
+              <InfoPopup title="Verification Simulation" content={DASHBOARD_INFO.verificationSimulation} />
+            </h2>
+          </div>
+          <button className="primary-button" onClick={runTests} disabled={testStage === 'running'}>
+            {testStage === 'running' ? 'Running Verification Simulation...' : 'Run Verification Simulation'}
+          </button>
+          {testStage !== 'idle' && (
+            <>
+              <ProgressBox title={testStage === 'done' ? 'Verification simulation complete.' : 'Executing matched verification test cases...'} progress={testProgress} />
+              <ProtocolExecutionLog logs={executionLogs} />
+            </>
+          )}
+        </section>
       )}
 
-      {testResults && (
+      {activeSection === 'test-results' && testResults && (
         <section id="test-results" className="card simulated-results-card">
           <h2 className="title-with-info">
             Simulated Test Results
@@ -1010,7 +1027,7 @@ export default function App() {
         </section>
       )}
 
-      {reviewItems.length > 0 && (
+      {activeSection === 'anomaly-review' && reviewItems.length > 0 && (
         <section id="anomaly-review" className="card combined-review-card">
           <h2 className="title-with-info">
             AI Anomaly Review & Engineer Confirmation
@@ -1106,7 +1123,7 @@ export default function App() {
         </section>
       )}
 
-      {report && (
+      {activeSection === 'draft-report' && report && (
         <section id="draft-report" className="card report-card">
           <div className="section-title">
             <FileText size={20} />
@@ -1140,6 +1157,5 @@ export default function App() {
         </section>
       )}
     </main>
-    </div>
   );
 }
