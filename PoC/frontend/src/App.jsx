@@ -67,6 +67,7 @@ export default function App() {
   const dragCounterRef = React.useRef(0);
   const testTimerRef = React.useRef(null);
   const reportTimerRef = React.useRef(null);
+  const eventLogRef = React.useRef(null);
 
   const [activeSection, setActiveSection] = React.useState('upload');
 
@@ -78,6 +79,11 @@ export default function App() {
     setActiveSection(hasReview ? 'anomaly-review' : 'test-results');
   }, [testResults]);
   React.useEffect(() => { if (report)      setActiveSection('draft-report');   }, [report]);
+  React.useEffect(() => {
+    if (eventLogRef.current) {
+      eventLogRef.current.scrollTop = eventLogRef.current.scrollHeight;
+    }
+  }, [analysisEvents]);
 
   function appendAuditEvent(eventType, actor, relatedItem, details) {
     const now = new Date();
@@ -852,7 +858,9 @@ export default function App() {
           : uploadElapsedSeconds < 150
             ? 'C2 regression priority calculation in progress'
             : 'Generating dashboard data';
-  const estimatedRemainingMinutes = Math.max(0, Math.ceil((240 - uploadElapsedSeconds) / 60));
+  const eventProgress = analysisEvents.length > 0
+    ? Math.min(95, Math.round((analysisEvents.length / 12) * 100))
+    : uploadProgress;
 
   const visibleSections = new Set(['upload']);
   if (analysis) {
@@ -938,13 +946,13 @@ export default function App() {
               aria-label="Estimated analysis progress"
               aria-valuemin="0"
               aria-valuemax="100"
-              aria-valuenow={uploadProgress}
+              aria-valuenow={eventProgress}
             >
-              <div className="progress-fill" style={{ width: `${uploadProgress}%` }} />
+              <div className="progress-fill" style={{ width: `${eventProgress}%` }} />
             </div>
 
             {analysisEvents.length > 0 && (
-              <div className="analysis-event-log">
+              <div className="analysis-event-log" ref={eventLogRef}>
                 {analysisEvents.map((ev, i) => (
                   <div key={i} className={`analysis-event-item${i === analysisEvents.length - 1 ? ' analysis-event-item--latest' : ''}`}>
                     <span className="analysis-event-time">{ev.t}s</span>
