@@ -356,11 +356,12 @@ def apply_c2_prioritization(match: dict[str, Any]) -> dict[str, Any]:
 # Core matching
 # ---------------------------------------------------------------------------
 
-def match_requirements(requirements: pd.DataFrame) -> list[dict[str, Any]]:
+def match_requirements(requirements: pd.DataFrame, log_fn=None) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     reference_mappings = load_reference_mappings()
+    total = len(requirements)
 
-    for _, row in requirements.reset_index(drop=True).iterrows():
+    for idx, (_, row) in enumerate(requirements.reset_index(drop=True).iterrows()):
         requirement_description = str(row["description"]).strip()
         requirement_id = str(row["requirement_id"])
         asil_level = str(row["asil_level"])
@@ -541,6 +542,16 @@ def match_requirements(requirements: pd.DataFrame) -> list[dict[str, Any]]:
                     ),
                 }
             ]
+
+        if log_fn:
+            if selected_matches:
+                best = selected_matches[0]
+                score = float(best.get("final_match_score", best.get("match_score", 0)))
+                test_name = best.get("matched_test_case_name", "?")
+                review_note = " — review recommended" if score < READY_APPROVAL_THRESHOLD else ""
+                log_fn(f"[{idx + 1}/{total}] {requirement_id} → {test_name} ({score:.0%}{review_note})")
+            else:
+                log_fn(f"[{idx + 1}/{total}] {requirement_id} → no match above threshold")
 
         results.extend(apply_c2_prioritization(match) for match in selected_matches[:3])
 

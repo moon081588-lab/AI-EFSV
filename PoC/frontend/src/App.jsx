@@ -858,9 +858,7 @@ export default function App() {
           : uploadElapsedSeconds < 150
             ? 'C2 regression priority calculation in progress'
             : 'Generating dashboard data';
-  const eventProgress = analysisEvents.length > 0
-    ? Math.min(95, Math.round((analysisEvents.length / 12) * 100))
-    : uploadProgress;
+  const eventProgress = uploadProgress;
 
   const visibleSections = new Set(['upload']);
   if (analysis) {

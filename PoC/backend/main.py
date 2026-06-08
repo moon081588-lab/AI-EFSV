@@ -162,8 +162,9 @@ def _run_analysis_job(job_id: str, file_bytes: bytes, filename: str) -> None:
 
         parser_info = build_parser_info_details(raw_requirements, requirements, parser_info)
 
-        log("C1 (llama3.2:3b) — requirement-to-test mapping started…")
-        matches = match_requirements(requirements)
+        req_total = len(requirements)
+        log(f"C1 (llama3.2:3b) — mapping {req_total} requirement{'s' if req_total != 1 else ''}…")
+        matches = match_requirements(requirements, log_fn=log)
         log(f"C1 complete — {len(matches)} candidate mapping{'s' if len(matches) != 1 else ''} generated")
 
         log("Building traceability matrix…")
