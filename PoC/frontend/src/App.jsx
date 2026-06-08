@@ -36,6 +36,7 @@ export default function App() {
   const [uploadStage, setUploadStage] = React.useState('idle');
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [uploadElapsedSeconds, setUploadElapsedSeconds] = React.useState(0);
+  const [analysisEvents, setAnalysisEvents] = React.useState([]);
   const [analysis, setAnalysis] = React.useState(null);
   const [uploadError, setUploadError] = React.useState('');
   const [uploadNotice, setUploadNotice] = React.useState('');
@@ -222,6 +223,7 @@ export default function App() {
     setCandidate1ReviewNotes({});
     setCandidate1RecoveryRecords({});
     setLiveAuditEvents([]);
+    setAnalysisEvents([]);
     appendAuditEvent('File Upload Started', 'User', file.name, 'User selected a requirements file for upload and analysis.');
     setUploadStage('analyzing');
     setUploadProgress(5);
@@ -260,6 +262,9 @@ export default function App() {
               signal: controller.signal,
             });
             const pollData = await pollResponse.json();
+            if (Array.isArray(pollData.events) && pollData.events.length > 0) {
+              setAnalysisEvents(pollData.events);
+            }
             if (pollData.status === 'done') {
               clearInterval(interval);
               resolve(pollData.result);
@@ -911,13 +916,21 @@ export default function App() {
             <div className="analysis-progress-header">
               <div className="analysis-spinner" aria-hidden="true" />
               <div>
-                <strong>{estimatedAnalysisStage}</strong>
-                <p>Local AI model analysis is in progress. This may take several minutes.</p>
+                <strong>
+                  {analysisEvents.length > 0
+                    ? analysisEvents[analysisEvents.length - 1].msg
+                    : estimatedAnalysisStage}
+                </strong>
+                <p>AI pipeline running locally — no data leaves this machine.</p>
               </div>
             </div>
             <div className="analysis-progress-meta">
-              <span>Estimated progress</span>
-              <strong>{uploadProgress}%</strong>
+              <span>Elapsed</span>
+              <strong>
+                {uploadElapsedSeconds >= 60
+                  ? `${Math.floor(uploadElapsedSeconds / 60)}m ${uploadElapsedSeconds % 60}s`
+                  : `${uploadElapsedSeconds}s`}
+              </strong>
             </div>
             <div
               className="progress-shell"
@@ -929,12 +942,19 @@ export default function App() {
             >
               <div className="progress-fill" style={{ width: `${uploadProgress}%` }} />
             </div>
+
+            {analysisEvents.length > 0 && (
+              <div className="analysis-event-log">
+                {analysisEvents.map((ev, i) => (
+                  <div key={i} className={`analysis-event-item${i === analysisEvents.length - 1 ? ' analysis-event-item--latest' : ''}`}>
+                    <span className="analysis-event-time">{ev.t}s</span>
+                    <span className="analysis-event-msg">{ev.msg}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="analysis-progress-footer">
-              <span>
-                {uploadElapsedSeconds < 240
-                  ? `Estimated wait: about ${estimatedRemainingMinutes} minute${estimatedRemainingMinutes === 1 ? '' : 's'}`
-                  : 'Analysis is taking longer than estimated.'}
-              </span>
               <button type="button" className="secondary-button analysis-cancel-button" onClick={cancelUpload}>
                 Cancel analysis
               </button>

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 import uuid
 from typing import Any
 
@@ -139,17 +140,52 @@ _jobs: dict[str, dict[str, Any]] = {}
 
 
 def _run_analysis_job(job_id: str, file_bytes: bytes, filename: str) -> None:
-    """Runs the full analysis pipeline synchronously (called in a thread)."""
+    """Runs the full analysis pipeline synchronously (called in a thread).
+    Appends human-readable events to _jobs[job_id]["events"] at each step so
+    the frontend can display live progress via polling.
+    """
+    start = time.monotonic()
+
+    def log(msg: str) -> None:
+        elapsed = round(time.monotonic() - start, 1)
+        _jobs[job_id]["events"].append({"t": elapsed, "msg": msg})
+
     try:
+        log(f"Received file: {filename}")
+
         raw_requirements, parser_info = parse_requirements_file(file_bytes, filename)
+        req_count = len(raw_requirements)
+        log(f"Parser complete — {req_count} requirement{'s' if req_count != 1 else ''} extracted")
+
         requirements = normalize_requirements(raw_requirements)
+        log(f"Normalization complete — {len(requirements)} active requirements")
+
         parser_info = build_parser_info_details(raw_requirements, requirements, parser_info)
+
+        log("C1 (llama3.2:3b) — requirement-to-test mapping started…")
         matches = match_requirements(requirements)
+        log(f"C1 complete — {len(matches)} candidate mapping{'s' if len(matches) != 1 else ''} generated")
+
+        log("Building traceability matrix…")
         traceability_matrix = build_traceability_matrix(matches)
+        log(f"Traceability matrix built — {len(traceability_matrix)} entries")
+
+        log("C2 (gemma3:4b) — regression priority & review workspace…")
         candidate1_review_items = build_candidate1_review_workspace(requirements, matches)
+        review_needed = sum(
+            1 for item in candidate1_review_items
+            if str(item.get("mappingReviewStatus", "")).upper() == "MAPPING_REVIEW_REQUIRED"
+        )
+        log(f"C2 complete — {len(candidate1_review_items)} items ({review_needed} flagged for review)")
+
+        log("Compiling audit log…")
         audit_log = build_audit_log(filename, parser_info, requirements, matches)
+
+        log("Generating dashboard summary…")
         summary = make_summary(matches, requirement_count=len(requirements))
-        _jobs[job_id] = {
+
+        log("✓ Analysis complete")
+        _jobs[job_id].update({
             "status": "done",
             "result": {
                 "filename": filename,
@@ -161,9 +197,10 @@ def _run_analysis_job(job_id: str, file_bytes: bytes, filename: str) -> None:
                 "candidate1ReviewItems": candidate1_review_items,
                 "auditLog": audit_log,
             },
-        }
+        })
     except Exception as exc:
-        _jobs[job_id] = {"status": "error", "detail": str(exc)}
+        log(f"✗ Error: {exc}")
+        _jobs[job_id].update({"status": "error", "detail": str(exc)})
 
 
 @app.post("/analyze-async")
@@ -172,7 +209,7 @@ async def analyze_requirements_async(file: UploadFile = File(...)) -> dict[str, 
     file_bytes = await file.read()
     filename = file.filename or ""
     job_id = str(uuid.uuid4())
-    _jobs[job_id] = {"status": "pending"}
+    _jobs[job_id] = {"status": "pending", "events": []}
     loop = asyncio.get_running_loop()
     loop.run_in_executor(None, _run_analysis_job, job_id, file_bytes, filename)
     return {"job_id": job_id}
