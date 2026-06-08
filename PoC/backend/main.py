@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import uuid
 from typing import Any
 
 import pandas as pd
@@ -129,6 +131,59 @@ def ai_status() -> dict[str, Any]:
 @app.get("/test-cases")
 def get_test_cases() -> list[dict[str, Any]]:
     return TEST_CASES.to_dict(orient="records")
+
+
+# ── Async job store ────────────────────────────────────────────────────────
+# Keyed by job_id → {"status": "pending"|"done"|"error", "result": ..., "detail": ...}
+_jobs: dict[str, dict[str, Any]] = {}
+
+
+def _run_analysis_job(job_id: str, file_bytes: bytes, filename: str) -> None:
+    """Runs the full analysis pipeline synchronously (called in a thread)."""
+    try:
+        raw_requirements, parser_info = parse_requirements_file(file_bytes, filename)
+        requirements = normalize_requirements(raw_requirements)
+        parser_info = build_parser_info_details(raw_requirements, requirements, parser_info)
+        matches = match_requirements(requirements)
+        traceability_matrix = build_traceability_matrix(matches)
+        candidate1_review_items = build_candidate1_review_workspace(requirements, matches)
+        audit_log = build_audit_log(filename, parser_info, requirements, matches)
+        summary = make_summary(matches, requirement_count=len(requirements))
+        _jobs[job_id] = {
+            "status": "done",
+            "result": {
+                "filename": filename,
+                "requirements": requirements.to_dict(orient="records"),
+                "matches": matches,
+                "summary": summary,
+                "parserInfo": parser_info,
+                "traceabilityMatrix": traceability_matrix,
+                "candidate1ReviewItems": candidate1_review_items,
+                "auditLog": audit_log,
+            },
+        }
+    except Exception as exc:
+        _jobs[job_id] = {"status": "error", "detail": str(exc)}
+
+
+@app.post("/analyze-async")
+async def analyze_requirements_async(file: UploadFile = File(...)) -> dict[str, str]:
+    """Submit a file for analysis. Returns a job_id immediately; poll /job/{job_id} for result."""
+    file_bytes = await file.read()
+    filename = file.filename or ""
+    job_id = str(uuid.uuid4())
+    _jobs[job_id] = {"status": "pending"}
+    loop = asyncio.get_running_loop()
+    loop.run_in_executor(None, _run_analysis_job, job_id, file_bytes, filename)
+    return {"job_id": job_id}
+
+
+@app.get("/job/{job_id}")
+def get_job_status(job_id: str) -> dict[str, Any]:
+    """Poll for the result of an async analysis job."""
+    if job_id not in _jobs:
+        raise HTTPException(status_code=404, detail="Job not found.")
+    return _jobs[job_id]
 
 
 @app.post("/analyze")

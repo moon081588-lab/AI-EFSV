@@ -233,20 +233,51 @@ export default function App() {
     const controller = new AbortController();
     uploadAbortControllerRef.current = controller;
 
-    const apiPromise = fetch(`${API_BASE}/analyze`, {
-      method: 'POST',
-      body: formData,
-      signal: controller.signal,
-    }).then(async (response) => {
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.detail || 'Upload failed.');
-      }
-      return payload;
-    });
-
     try {
-      const payload = await apiPromise;
+      // Phase 1: submit file — returns immediately with a job_id
+      const submitResponse = await fetch(`${API_BASE}/analyze-async`, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
+      const submitPayload = await submitResponse.json();
+      if (!submitResponse.ok) {
+        throw new Error(submitPayload.detail || 'Upload failed.');
+      }
+      const { job_id } = submitPayload;
+
+      // Phase 2: poll /job/{job_id} every 2 s until done or error
+      // Each poll is a short request — never hits ngrok's 30-second timeout
+      const payload = await new Promise((resolve, reject) => {
+        const interval = setInterval(async () => {
+          if (controller.signal.aborted) {
+            clearInterval(interval);
+            reject(new DOMException('Aborted', 'AbortError'));
+            return;
+          }
+          try {
+            const pollResponse = await fetch(`${API_BASE}/job/${job_id}`, {
+              signal: controller.signal,
+            });
+            const pollData = await pollResponse.json();
+            if (pollData.status === 'done') {
+              clearInterval(interval);
+              resolve(pollData.result);
+            } else if (pollData.status === 'error') {
+              clearInterval(interval);
+              reject(new Error(pollData.detail || 'Analysis failed.'));
+            }
+            // status === 'pending' → keep polling
+          } catch (pollError) {
+            if (pollError.name === 'AbortError') {
+              clearInterval(interval);
+              reject(pollError);
+            }
+            // transient network error → keep retrying
+          }
+        }, 2000);
+      });
+
       if (uploadTimerRef.current) clearInterval(uploadTimerRef.current);
       uploadTimerRef.current = null;
       setUploadStage('rendering');
