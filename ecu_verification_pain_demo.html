@@ -841,7 +841,7 @@
 <div class="screen" id="s5">
   <div class="section-label">Step 5 of 6</div>
   <h2 class="big-title">그런데… BCM은 <span style="color:#f87171">100개 ECU 중 하나</span>입니다</h2>
-  <p style="color:#4b5a7a; font-size:15px; margin-bottom:8px;">각 블록이 하나의 ECU입니다. 47번 BCM을 방금 마쳤습니다.</p>
+  <p style="color:#4b5a7a; font-size:15px; margin-bottom:8px;">각 블록이 하나의 ECU입니다. 지금 첫 번째 ECU (#1 ECM)를 진행 중입니다.</p>
 
   <div class="ecu-grid" id="ecu-grid"></div>
 
@@ -854,10 +854,10 @@
   <div class="tiredness-bar-wrap" style="margin-top:20px;">
     <div class="tiredness-label">
       <span>전체 진행률</span>
-      <span id="scale-pct">47%</span>
+      <span id="scale-pct">1%</span>
     </div>
     <div class="tiredness-bar">
-      <div class="tiredness-fill" id="scale-fill" style="width:47%"></div>
+      <div class="tiredness-fill" id="scale-fill" style="width:1%"></div>
     </div>
   </div>
 
@@ -911,7 +911,7 @@
 
   <div style="display:flex; gap:16px;">
     <button class="btn btn-ghost" onclick="goTo(0)">← 처음부터 다시</button>
-    <button class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 20px rgba(16,185,129,0.35);" onclick="window.open('https://active-mustard-chemicals.ngrok-free.dev','_blank')">
+    <button class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 20px rgba(16,185,129,0.35);" onclick="alert('AI-Human Teaming 데모로 연결됩니다')">
       AI-Human Teaming 솔루션 보기 →
     </button>
   </div>
@@ -1223,14 +1223,14 @@ function updateMappingStats() {
   document.getElementById('map-req-count').textContent = mappedReqs.size;
   document.getElementById('map-link-count').textContent = totalLinks;
   document.getElementById('map-remaining').textContent = 312 - mappedReqs.size;
-  const pct = Math.round(mappedReqs.size / 15 * 100);
+  const pct = Math.round(mappedReqs.size / 312 * 100);
   document.getElementById('tiredness-pct').textContent = pct + '%';
   document.getElementById('tiredness-fill').style.width = pct + '%';
 }
 
 function updateTiredness() {
   const fill = document.getElementById('tiredness-fill');
-  const pct = Math.round(mappedReqs.size / 15 * 100);
+  const pct = Math.round(mappedReqs.size / 312 * 100);
   const col = pct < 30 ? '#3b82f6' : pct < 60 ? '#f59e0b' : '#ef4444';
   fill.style.background = col;
 }
@@ -1386,21 +1386,21 @@ function buildEcuGrid() {
     const name = ECU_NAMES[i] || `ECU-${i+1}`;
     div.innerHTML = `<div style="font-size:8px; font-weight:800;">${name}</div><div style="font-size:7px; margin-top:1px;">#${i+1}</div>`;
 
-    if(i < 46) {
+    if(i < 0) {
       div.classList.add('done');
       div.title = `${name} — 완료`;
-    } else if(i === 46) {
+    } else if(i === 0) {
       div.classList.add('current');
-      div.title = `${name} — 방금 완료 (당신이 작업한 ECU)`;
+      div.title = `${name} — 현재 진행 중`;
     }
     grid.appendChild(div);
   }
 
   // Animate remaining time
   setTimeout(() => {
-    document.getElementById('time-display').textContent = '~9개월';
-    document.getElementById('time-sub').textContent = '53개 ECU 남음 × 평균 5.1일/ECU (= 270일) — 물론 당신 혼자가 아닙니다. 그런데 팀 전체가 100명이어도…';
-    document.getElementById('scale-fill').style.width = '47%';
+    document.getElementById('time-display').textContent = '~18개월';
+    document.getElementById('time-sub').textContent = '99개 ECU 남음 × 평균 5.1일/ECU — 팀 전체가 달려들어도 18개월 이상 소요';
+    document.getElementById('scale-fill').style.width = '1%';
     document.getElementById('scale-fill').style.background = '#f59e0b';
   }, 400);
 }
