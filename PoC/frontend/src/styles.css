@@ -1252,28 +1252,96 @@ td {
   padding: 1rem;
 }
 
-.generated-tc-card {
-  border-color: #a78bfa;
-  background: #faf5ff;
+/* ── Generated Test Cases tab ─────────────────────────────── */
+.candidate1-pill.generated {
+  background: #ede9fe;
+  color: #6d28d9;
+  border-color: #c4b5fd;
 }
 
-.generated-tc-banner {
+.candidate1-filter-tab:has(+ .candidate1-filter-tab) {
+  /* keep existing styles */
+}
+
+.generated-tc-item {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  background: linear-gradient(90deg, #7c3aed 0%, #a855f7 100%);
-  color: #ffffff;
-  font-size: 0.85rem;
-  font-weight: 700;
-  border-radius: 10px 10px 0 0;
-  margin: -1rem -1rem 1rem -1rem;
-  padding: 0.55rem 1rem;
+  flex-direction: column;
+  gap: 1rem;
+  background: #faf5ff;
+  border: 1.5px solid #c4b5fd;
+  border-radius: 16px;
+  padding: 1.25rem;
 }
 
-.generated-tc-banner span {
+.generated-tc-item-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.generated-tc-item-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.generated-tc-item-title h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #172033;
+}
+
+.generated-tc-item-req-text {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.generated-tc-card {
+  background: #ffffff;
+  border: 1px solid #ddd6fe;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.generated-tc-card-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  color: #172033;
+}
+
+.generated-tc-type-pill {
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+  border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 400;
-  opacity: 0.85;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+}
+
+.generated-tc-duration {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-left: auto;
+}
+
+.generated-tc-card p,
+.generated-tc-card li {
+  font-size: 0.875rem;
+  color: #334155;
+  line-height: 1.55;
+  margin: 0.35rem 0;
+}
+
+.generated-tc-card ol {
+  margin: 0.35rem 0 0.35rem 1.25rem;
+  padding: 0;
 }
 
 .candidate1-panel h4,

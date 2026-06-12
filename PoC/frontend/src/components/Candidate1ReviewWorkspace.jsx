@@ -5,7 +5,7 @@ import { DASHBOARD_INFO } from '../constants.js';
 import { asilColorClass, formatConfidence, formatHours, formatMappingReviewReasonCode } from '../utils.js';
 
 export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes, recoveryRecords, setDecision, setReviewNote, setRecoveryRecord, appendAuditEvent }) {
-  const [candidate1Filter, setCandidate1Filter] = React.useState('manual-review');
+  const [candidate1Filter, setCandidate1Filter] = React.useState('generated');
   const [selectedAlternatives, setSelectedAlternatives] = React.useState({});
   const [recoveryActions, setRecoveryActions] = React.useState({});
   const [collapsedRecoveryItems, setCollapsedRecoveryItems] = React.useState({});
@@ -13,6 +13,7 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
 
   const untestableRows = rows.filter((item) => decisions[item.requirementId] === 'REJECTED_UNTESTABLE' || recoveryRecords[item.requirementId]?.recoveryAction === 'KEEP_REJECTED_UNTESTABLE');
   const rejectedRows = rows.filter((item) => ['REJECTED_BY_ENGINEER', 'REJECTED_WITH_ALTERNATIVE', 'MANUAL_TEST_REQUESTED', 'REJECTED_UNTESTABLE'].includes(decisions[item.requirementId]) || recoveryRecords[item.requirementId]?.recoveryAction === 'KEEP_REJECTED_UNTESTABLE');
+  const generatedRows = rows.filter((item) => item.generatedCandidateTestCase?.aiGenerated === true);
 
   const isRecoveredOrRejected = (item) => (
     ['REJECTED_BY_ENGINEER', 'REJECTED_WITH_ALTERNATIVE', 'MANUAL_TEST_REQUESTED', 'REJECTED_UNTESTABLE'].includes(decisions[item.requirementId]) ||
@@ -31,19 +32,22 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
   const manualReviewRows = rows.filter((item) => !isRecoveredOrRejected(item) && requiresManualReview(item));
   const readyRows = rows.filter((item) => !isRecoveredOrRejected(item) && !requiresManualReview(item));
 
-  const filteredRows = candidate1Filter === 'manual-review'
-    ? manualReviewRows
-    : candidate1Filter === 'ready'
-      ? readyRows
-      : candidate1Filter === 'rejected'
-        ? rejectedRows
-        : candidate1Filter === 'untestable'
-          ? untestableRows
-          : rows;
+  const filteredRows = candidate1Filter === 'generated'
+    ? generatedRows
+    : candidate1Filter === 'manual-review'
+      ? manualReviewRows
+      : candidate1Filter === 'ready'
+        ? readyRows
+        : candidate1Filter === 'rejected'
+          ? rejectedRows
+          : candidate1Filter === 'untestable'
+            ? untestableRows
+            : rows;
 
   const visibleRows = filteredRows.slice(0, 20);
 
   const filterOptions = [
+    { key: 'generated', label: '🤖 AI-Generated Test Cases', count: generatedRows.length },
     { key: 'manual-review', label: 'Mapping Review Required', count: manualReviewRows.length },
     { key: 'ready', label: 'Ready for Engineer Approval', count: readyRows.length },
     { key: 'rejected', label: 'Rejected / Recovery', count: rejectedRows.length },
@@ -207,6 +211,7 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
           <span className="candidate1-pill success">{readyRows.length} ready for approval</span>
           {untestableRows.length > 0 && <span className="candidate1-pill warning">{untestableRows.length} untestable</span>}
           {rejectedRows.length > 0 && <span className="candidate1-pill danger">{rejectedRows.length} rejected</span>}
+          {generatedRows.length > 0 && <span className="candidate1-pill generated">{generatedRows.length} AI-generated</span>}
         </div>
       </div>
       <div className="candidate1-body">
@@ -225,15 +230,17 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
           </div>
 
           <div className="candidate1-filter-context">
-            {candidate1Filter === 'manual-review'
-              ? 'Showing requirement-to-test mappings that the backend classified as low-confidence or ambiguous and therefore require engineer review before downstream use.'
-              : candidate1Filter === 'ready'
-                ? 'Showing requirement-to-test mappings that the backend classified as ready for direct engineer approval.'
-                : candidate1Filter === 'rejected'
-                  ? 'Showing rejected candidates and recovery items requiring alternative selection, manual design, kept-rejected handling, or untestable resolution.'
-                  : candidate1Filter === 'untestable'
-                    ? 'Showing requirements currently marked untestable and removed from active downstream evidence calculations.'
-                    : 'Showing all requirement review items.'}
+            {candidate1Filter === 'generated'
+              ? 'Requirements with no strong existing test match (confidence < 60%). The AI wrote a purpose-built test case for each. Review and accept or dismiss before moving to the mapped tests below.'
+              : candidate1Filter === 'manual-review'
+                ? 'Showing requirement-to-test mappings that the backend classified as low-confidence or ambiguous and therefore require engineer review before downstream use.'
+                : candidate1Filter === 'ready'
+                  ? 'Showing requirement-to-test mappings that the backend classified as ready for direct engineer approval.'
+                  : candidate1Filter === 'rejected'
+                    ? 'Showing rejected candidates and recovery items requiring alternative selection, manual design, kept-rejected handling, or untestable resolution.'
+                    : candidate1Filter === 'untestable'
+                      ? 'Showing requirements currently marked untestable and removed from active downstream evidence calculations.'
+                      : 'Showing all requirement review items.'}
           </div>
 
           <div className="candidate1-list">
@@ -245,6 +252,74 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
               const mappingReviewReasonCodes = Array.isArray(item.mappingReviewReasonCodes) ? item.mappingReviewReasonCodes : [];
               const currentDecision = decisions[item.requirementId] || candidate.reviewStatus || item.engineerDecision;
               const currentReviewNote = reviewNotes[item.requirementId] || item.engineerReviewNote || '';
+
+              if (candidate1Filter === 'generated') {
+                return (
+                  <div className="generated-tc-item" key={item.requirementId}>
+                    <div className="generated-tc-item-header">
+                      <div className="generated-tc-item-title">
+                        <h3>{item.requirementId}</h3>
+                        <span className={`status-pill ${asilColorClass(item.asilLevel)}`}>{item.asilLevel}</span>
+                      </div>
+                      <p className="generated-tc-item-req-text">{item.extractedRequirementText}</p>
+                    </div>
+                    <div className="generated-tc-card">
+                      <div className="generated-tc-card-title">
+                        <span>🤖</span>
+                        <strong>{candidate.candidateTestCaseId} — {candidate.candidateTestCaseName}</strong>
+                        {candidate.testType && <span className="generated-tc-type-pill">{candidate.testType}</span>}
+                        {candidate.estimatedDurationMinutes && (
+                          <span className="generated-tc-duration">~{candidate.estimatedDurationMinutes} min</span>
+                        )}
+                      </div>
+                      <p><strong>Objective:</strong> {candidate.objective}</p>
+                      <p><strong>Precondition:</strong> {candidate.precondition}</p>
+                      <div>
+                        <strong>Procedure:</strong>
+                        <ol>
+                          {(candidate.procedure || []).map((step, index) => (
+                            <li key={index}>{step}</li>
+                          ))}
+                        </ol>
+                      </div>
+                      <p><strong>Expected Response:</strong> {candidate.expectedResponse}</p>
+                      {candidate.acceptanceCriteria && (
+                        <p><strong>Acceptance Criteria:</strong> {candidate.acceptanceCriteria}</p>
+                      )}
+                    </div>
+                    <div className="button-row candidate1-actions">
+                      <button
+                        className="confirm-button"
+                        type="button"
+                        onClick={() => setDecision(item.requirementId, 'APPROVED_BY_ENGINEER')}
+                      >
+                        <CheckCircle size={16} /> Accept Generated TC
+                      </button>
+                      <button
+                        className="deny-button"
+                        type="button"
+                        onClick={() => {
+                          setDecision(item.requirementId, 'REJECTED_BY_ENGINEER');
+                          keepRejected(item.requirementId);
+                        }}
+                      >
+                        <XCircle size={16} /> Dismiss
+                      </button>
+                      <span
+                        className={`decision-pill ${
+                          currentDecision === 'REJECTED_BY_ENGINEER'
+                            ? 'decision-rejected'
+                            : currentDecision === 'APPROVED_BY_ENGINEER'
+                              ? 'decision-accepted'
+                              : ''
+                        }`}
+                      >
+                        {currentDecision}
+                      </span>
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <div className="candidate1-item" key={item.requirementId}>
@@ -332,17 +407,8 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
                     </div>
                   </div>
 
-                  <div className={`candidate-test-card${candidate.aiGenerated ? ' generated-tc-card' : ''}`}>
-                    {candidate.aiGenerated && (
-                      <div className="generated-tc-banner">
-                        🤖 AI-Generated Test Case
-                        <span>Confidence was below 60% — no strong existing match found</span>
-                      </div>
-                    )}
+                  <div className="candidate-test-card">
                     <h4>{candidate.candidateTestCaseId} — {candidate.candidateTestCaseName}</h4>
-                    {candidate.testType && (
-                      <p><strong>Test Type:</strong> {candidate.testType}</p>
-                    )}
                     <p><strong>Objective:</strong> {candidate.objective}</p>
                     <p><strong>Precondition:</strong> {candidate.precondition}</p>
                     <div>
@@ -354,9 +420,6 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
                       </ol>
                     </div>
                     <p><strong>Expected Response:</strong> {candidate.expectedResponse}</p>
-                    {candidate.aiGenerated && candidate.acceptanceCriteria && (
-                      <p><strong>Acceptance Criteria:</strong> {candidate.acceptanceCriteria}</p>
-                    )}
                     <div className="candidate1-review-note-box">
                       <label htmlFor={`candidate1-note-${item.requirementId}`}>Engineer Review Note</label>
                       <textarea
@@ -368,7 +431,7 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
                     </div>
                     <div className="button-row candidate1-actions">
                       <button className="confirm-button" type="button" onClick={() => setDecision(item.requirementId, 'APPROVED_BY_ENGINEER')}>
-                        <CheckCircle size={16} /> {candidate.aiGenerated ? 'Accept AI-Generated TC' : 'Approve Candidate Test'}
+                        <CheckCircle size={16} /> Approve Candidate Test
                       </button>
                       <button
                         className="deny-button"
@@ -379,7 +442,7 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
                           setCandidate1Filter('rejected');
                         }}
                       >
-                        <XCircle size={16} /> {candidate.aiGenerated ? 'Dismiss' : 'Reject Candidate Test'}
+                        <XCircle size={16} /> Reject Candidate Test
                       </button>
                       <span
                         className={`decision-pill ${
