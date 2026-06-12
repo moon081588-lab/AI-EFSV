@@ -47,7 +47,7 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
   const visibleRows = filteredRows.slice(0, 20);
 
   const filterOptions = [
-    { key: 'generated', label: '🤖 AI-Generated Test Cases', count: generatedRows.length },
+    { key: 'generated', label: 'AI-Generated Test Cases', count: generatedRows.length },
     { key: 'manual-review', label: 'Mapping Review Required', count: manualReviewRows.length },
     { key: 'ready', label: 'Ready for Engineer Approval', count: readyRows.length },
     { key: 'rejected', label: 'Rejected / Recovery', count: rejectedRows.length },
@@ -265,7 +265,6 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
                     </div>
                     <div className="generated-tc-card">
                       <div className="generated-tc-card-title">
-                        <span>🤖</span>
                         <strong>{candidate.candidateTestCaseId} — {candidate.candidateTestCaseName}</strong>
                         {candidate.testType && <span className="generated-tc-type-pill">{candidate.testType}</span>}
                         {candidate.estimatedDurationMinutes && (
