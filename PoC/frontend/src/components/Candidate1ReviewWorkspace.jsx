@@ -231,7 +231,7 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
 
           <div className="candidate1-filter-context">
             {candidate1Filter === 'generated'
-              ? 'Requirements with no strong existing test match (confidence < 60%). The AI wrote a purpose-built test case for each. Review and accept or dismiss before moving to the mapped tests below.'
+              ? 'Requirements with no strong existing test match (confidence < 80%). The AI wrote a purpose-built test case for each. Review and accept or dismiss before moving to the mapped tests below.'
               : candidate1Filter === 'manual-review'
                 ? 'Showing requirement-to-test mappings that the backend classified as low-confidence or ambiguous and therefore require engineer review before downstream use.'
                 : candidate1Filter === 'ready'

@@ -17,7 +17,7 @@ from test_cases import TEST_CASES
 from traceability import infer_coverage_type, infer_mapping_review_status
 
 # Requirements whose best match falls below this threshold get an AI-generated TC.
-GENERATE_TC_THRESHOLD = 0.60
+GENERATE_TC_THRESHOLD = 0.80
 
 
 def decompose_requirement_clauses(requirement_id: str, requirement_text: str) -> list[dict[str, Any]]:

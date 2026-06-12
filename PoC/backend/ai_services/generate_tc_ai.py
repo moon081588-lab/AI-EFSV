@@ -64,7 +64,7 @@ def generate_test_case_ai(
         "requirement_text": requirement_text,
         "asil_level": asil_level,
         "context": (
-            "This requirement had no existing test case with confidence ≥ 60%. "
+            "This requirement had no existing test case with confidence ≥ 80%. "
             "Generate a purpose-built test case that directly verifies it."
         ),
     }
