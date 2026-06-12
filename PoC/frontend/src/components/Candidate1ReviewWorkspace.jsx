@@ -332,8 +332,17 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
                     </div>
                   </div>
 
-                  <div className="candidate-test-card">
+                  <div className={`candidate-test-card${candidate.aiGenerated ? ' generated-tc-card' : ''}`}>
+                    {candidate.aiGenerated && (
+                      <div className="generated-tc-banner">
+                        🤖 AI-Generated Test Case
+                        <span>Confidence was below 60% — no strong existing match found</span>
+                      </div>
+                    )}
                     <h4>{candidate.candidateTestCaseId} — {candidate.candidateTestCaseName}</h4>
+                    {candidate.testType && (
+                      <p><strong>Test Type:</strong> {candidate.testType}</p>
+                    )}
                     <p><strong>Objective:</strong> {candidate.objective}</p>
                     <p><strong>Precondition:</strong> {candidate.precondition}</p>
                     <div>
@@ -345,6 +354,9 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
                       </ol>
                     </div>
                     <p><strong>Expected Response:</strong> {candidate.expectedResponse}</p>
+                    {candidate.aiGenerated && candidate.acceptanceCriteria && (
+                      <p><strong>Acceptance Criteria:</strong> {candidate.acceptanceCriteria}</p>
+                    )}
                     <div className="candidate1-review-note-box">
                       <label htmlFor={`candidate1-note-${item.requirementId}`}>Engineer Review Note</label>
                       <textarea
@@ -356,7 +368,7 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
                     </div>
                     <div className="button-row candidate1-actions">
                       <button className="confirm-button" type="button" onClick={() => setDecision(item.requirementId, 'APPROVED_BY_ENGINEER')}>
-                        <CheckCircle size={16} /> Approve Candidate Test
+                        <CheckCircle size={16} /> {candidate.aiGenerated ? 'Accept AI-Generated TC' : 'Approve Candidate Test'}
                       </button>
                       <button
                         className="deny-button"
@@ -367,7 +379,7 @@ export default function Candidate1ReviewWorkspace({ rows, decisions, reviewNotes
                           setCandidate1Filter('rejected');
                         }}
                       >
-                        <XCircle size={16} /> Reject Candidate Test
+                        <XCircle size={16} /> {candidate.aiGenerated ? 'Dismiss' : 'Reject Candidate Test'}
                       </button>
                       <span
                         className={`decision-pill ${

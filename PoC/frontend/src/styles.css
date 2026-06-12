@@ -1252,6 +1252,30 @@ td {
   padding: 1rem;
 }
 
+.generated-tc-card {
+  border-color: #a78bfa;
+  background: #faf5ff;
+}
+
+.generated-tc-banner {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  background: linear-gradient(90deg, #7c3aed 0%, #a855f7 100%);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 10px 10px 0 0;
+  margin: -1rem -1rem 1rem -1rem;
+  padding: 0.55rem 1rem;
+}
+
+.generated-tc-banner span {
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
 .candidate1-panel h4,
 .candidate-test-card h4 {
   color: #172033;

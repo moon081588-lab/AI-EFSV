@@ -5,6 +5,7 @@ from typing import Any
 
 import pandas as pd
 
+from ai_services.generate_tc_ai import generate_test_case_ai
 from matching import (
     build_ai_rationale,
     calculate_hybrid_match_score,
@@ -14,6 +15,9 @@ from matching import (
 )
 from test_cases import TEST_CASES
 from traceability import infer_coverage_type, infer_mapping_review_status
+
+# Requirements whose best match falls below this threshold get an AI-generated TC.
+GENERATE_TC_THRESHOLD = 0.60
 
 
 def decompose_requirement_clauses(requirement_id: str, requirement_text: str) -> list[dict[str, Any]]:
@@ -288,9 +292,12 @@ def build_candidate1_review_workspace(requirements: pd.DataFrame, matches: list[
             )
             alternative_candidate_tests.extend(fallback_alternatives)
 
-        candidate_test_case = generate_candidate_test_case(requirement_id, requirement_text, asil_level, boundary_clues)
-        manual_test_design_candidate = build_manual_test_design_candidate(requirement_id, requirement_text, asil_level)
         best_match_score = float(primary_matches.iloc[0]["match_score"]) if not primary_matches.empty else 0.0
+        if best_match_score < GENERATE_TC_THRESHOLD:
+            candidate_test_case = generate_test_case_ai(requirement_id, requirement_text, asil_level)
+        else:
+            candidate_test_case = generate_candidate_test_case(requirement_id, requirement_text, asil_level, boundary_clues)
+        manual_test_design_candidate = build_manual_test_design_candidate(requirement_id, requirement_text, asil_level)
         best_match_rationale = str(primary_matches.iloc[0].get("ai_rationale", "")) if not primary_matches.empty else ""
         mapping_review = (
             mapping_review_fields_from_match(primary_matches.iloc[0].to_dict())
