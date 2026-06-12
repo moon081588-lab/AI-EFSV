@@ -556,7 +556,7 @@ export default function App() {
 
       reportTimerRef.current = setInterval(() => {
         const elapsed = Date.now() - start;
-        const percent = Math.min(100, Math.round((elapsed / 5000) * 100));
+        const percent = Math.min(95, Math.round((elapsed / 5000) * 100));
         setReportProgress(percent);
 
         if (elapsed >= 5000) {
@@ -1177,7 +1177,7 @@ export default function App() {
           )}
           {reportStage !== 'idle' && reportStage !== 'error' && (
             <ProgressBox
-              title={reportStage === 'done' ? 'ISO 26262 compliance report draft complete.' : 'Drafting ISO 26262 compliance report...'}
+              title={reportStage === 'done' ? 'ISO 26262 compliance report draft complete.' : reportProgress >= 95 ? 'Finalising report — waiting for server response...' : 'Drafting ISO 26262 compliance report...'}
               progress={reportProgress}
             />
           )}
